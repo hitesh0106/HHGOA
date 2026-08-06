@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hh-goa-builder.vercel.app/sitemap.xml

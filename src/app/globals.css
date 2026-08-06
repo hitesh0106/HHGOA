@@ -1,0 +1,333 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-fraunces);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* HH Goa Tropical Brand Palette */
+  --color-emerald: var(--emerald);
+  --color-emerald-deep: var(--emerald-deep);
+  --color-emerald-soft: var(--emerald-soft);
+  --color-gold: var(--gold);
+  --color-gold-deep: var(--gold-deep);
+  --color-gold-soft: var(--gold-soft);
+  --color-coral: var(--coral);
+  --color-coral-deep: var(--coral-deep);
+  --color-coral-soft: var(--coral-soft);
+  --color-ivory: var(--ivory);
+  --color-beige: var(--beige);
+  --color-sand: var(--sand);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 12px);
+  --radius-3xl: calc(var(--radius) + 24px);
+}
+
+:root {
+  --radius: 0.875rem;
+
+  /* Background system — warm ivory base */
+  --background: oklch(0.985 0.012 90);
+  --foreground: oklch(0.18 0.02 165);
+
+  --card: oklch(1 0.005 90);
+  --card-foreground: oklch(0.18 0.02 165);
+  --popover: oklch(1 0.005 90);
+  --popover-foreground: oklch(0.18 0.02 165);
+
+  /* Primary = Deep Emerald */
+  --primary: oklch(0.42 0.11 165);
+  --primary-foreground: oklch(0.985 0.012 90);
+
+  /* Secondary = Soft Beige */
+  --secondary: oklch(0.95 0.025 85);
+  --secondary-foreground: oklch(0.30 0.05 165);
+
+  --muted: oklch(0.96 0.015 85);
+  --muted-foreground: oklch(0.52 0.03 165);
+
+  /* Accent = Golden Yellow */
+  --accent: oklch(0.83 0.16 85);
+  --accent-foreground: oklch(0.28 0.06 60);
+
+  --destructive: oklch(0.62 0.22 25);
+  --border: oklch(0.90 0.022 85);
+  --input: oklch(0.93 0.018 85);
+  --ring: oklch(0.55 0.13 165);
+
+  --chart-1: oklch(0.42 0.11 165);
+  --chart-2: oklch(0.83 0.16 85);
+  --chart-3: oklch(0.68 0.19 25);
+  --chart-4: oklch(0.85 0.06 165);
+  --chart-5: oklch(0.72 0.13 60);
+
+  --sidebar: oklch(0.985 0.012 90);
+  --sidebar-foreground: oklch(0.18 0.02 165);
+  --sidebar-primary: oklch(0.42 0.11 165);
+  --sidebar-primary-foreground: oklch(0.985 0.012 90);
+  --sidebar-accent: oklch(0.96 0.015 85);
+  --sidebar-accent-foreground: oklch(0.30 0.05 165);
+  --sidebar-border: oklch(0.90 0.022 85);
+  --sidebar-ring: oklch(0.55 0.13 165);
+
+  /* HH Goa Brand Colors */
+  --emerald: oklch(0.42 0.11 165);
+  --emerald-deep: oklch(0.30 0.08 165);
+  --emerald-soft: oklch(0.62 0.10 165);
+  --gold: oklch(0.83 0.16 85);
+  --gold-deep: oklch(0.68 0.16 80);
+  --gold-soft: oklch(0.92 0.10 85);
+  --coral: oklch(0.68 0.19 25);
+  --coral-deep: oklch(0.55 0.18 25);
+  --coral-soft: oklch(0.85 0.10 25);
+  --ivory: oklch(0.985 0.012 90);
+  --beige: oklch(0.95 0.025 85);
+  --sand: oklch(0.88 0.04 80);
+}
+
+.dark {
+  --background: oklch(0.16 0.018 165);
+  --foreground: oklch(0.97 0.012 90);
+  --card: oklch(0.20 0.022 165);
+  --card-foreground: oklch(0.97 0.012 90);
+  --popover: oklch(0.20 0.022 165);
+  --popover-foreground: oklch(0.97 0.012 90);
+  --primary: oklch(0.75 0.14 165);
+  --primary-foreground: oklch(0.16 0.018 165);
+  --secondary: oklch(0.25 0.03 165);
+  --secondary-foreground: oklch(0.97 0.012 90);
+  --muted: oklch(0.25 0.02 165);
+  --muted-foreground: oklch(0.72 0.025 90);
+  --accent: oklch(0.83 0.16 85);
+  --accent-foreground: oklch(0.20 0.04 60);
+  --destructive: oklch(0.70 0.20 25);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.70 0.13 165);
+
+  --emerald: oklch(0.70 0.13 165);
+  --emerald-deep: oklch(0.55 0.12 165);
+  --emerald-soft: oklch(0.78 0.11 165);
+  --gold: oklch(0.85 0.16 85);
+  --gold-deep: oklch(0.75 0.16 80);
+  --gold-soft: oklch(0.40 0.06 80);
+  --coral: oklch(0.74 0.18 25);
+  --coral-deep: oklch(0.62 0.18 25);
+  --coral-soft: oklch(0.45 0.10 25);
+  --ivory: oklch(0.20 0.022 165);
+  --beige: oklch(0.25 0.03 165);
+  --sand: oklch(0.35 0.04 80);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+  }
+  ::selection {
+    background-color: var(--gold);
+    color: var(--emerald-deep);
+  }
+}
+
+/* Custom scrollbar */
+.scroll-tropical::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-tropical::-webkit-scrollbar-track {
+  background: var(--beige);
+  border-radius: 8px;
+}
+.scroll-tropical::-webkit-scrollbar-thumb {
+  background: var(--emerald-soft);
+  border-radius: 8px;
+}
+.scroll-tropical::-webkit-scrollbar-thumb:hover {
+  background: var(--emerald);
+}
+
+/* Tropical gradient text */
+.text-gradient-tropical {
+  background: linear-gradient(135deg, var(--emerald) 0%, var(--emerald-soft) 50%, var(--gold-deep) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--gold-deep) 0%, var(--gold) 50%, var(--coral) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Premium card shadow */
+.shadow-tropical {
+  box-shadow:
+    0 1px 2px oklch(0.42 0.11 165 / 0.04),
+    0 8px 24px oklch(0.42 0.11 165 / 0.08),
+    0 24px 48px oklch(0.42 0.11 165 / 0.06);
+}
+.shadow-tropical-lg {
+  box-shadow:
+    0 2px 4px oklch(0.42 0.11 165 / 0.06),
+    0 12px 32px oklch(0.42 0.11 165 / 0.12),
+    0 40px 80px oklch(0.42 0.11 165 / 0.10);
+}
+.shadow-gold-glow {
+  box-shadow:
+    0 0 0 1px oklch(0.83 0.16 85 / 0.30),
+    0 8px 24px oklch(0.83 0.16 85 / 0.25);
+}
+
+/* Glass effect */
+.glass-tropical {
+  background: color-mix(in oklch, var(--ivory) 70%, transparent);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+/* Mesh gradient background */
+.bg-mesh-tropical {
+  background-color: var(--ivory);
+  background-image:
+    radial-gradient(at 12% 18%, color-mix(in oklch, var(--emerald-soft) 32%, transparent) 0px, transparent 50%),
+    radial-gradient(at 88% 12%, color-mix(in oklch, var(--gold) 28%, transparent) 0px, transparent 50%),
+    radial-gradient(at 70% 90%, color-mix(in oklch, var(--coral-soft) 30%, transparent) 0px, transparent 50%),
+    radial-gradient(at 18% 88%, color-mix(in oklch, var(--emerald) 18%, transparent) 0px, transparent 50%);
+}
+
+.bg-mesh-tropical-dark {
+  background-color: var(--emerald-deep);
+  background-image:
+    radial-gradient(at 12% 18%, color-mix(in oklch, var(--emerald) 40%, transparent) 0px, transparent 50%),
+    radial-gradient(at 88% 12%, color-mix(in oklch, var(--gold) 25%, transparent) 0px, transparent 50%),
+    radial-gradient(at 70% 90%, color-mix(in oklch, var(--coral) 18%, transparent) 0px, transparent 50%);
+}
+
+/* Floating decoration animations */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-22px) rotate(3deg); }
+}
+@keyframes float-medium {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(-2deg); }
+}
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(8px, -12px) rotate(2deg); }
+  66% { transform: translate(-6px, -8px) rotate(-2deg); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+@keyframes ripple {
+  to { transform: scale(2.4); opacity: 0; }
+}
+
+.animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
+.animate-float-medium { animation: float-medium 6s ease-in-out infinite; }
+.animate-drift { animation: drift 12s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+
+/* Button ripple */
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  transform: scale(0);
+  animation: ripple 0.7s ease-out;
+  pointer-events: none;
+}
+
+/* Shimmer skeleton */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--beige) 0%,
+    color-mix(in oklch, var(--gold-soft) 60%, var(--beige)) 50%,
+    var(--beige) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Tropical divider */
+.divider-tropical {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--emerald-soft) 30%,
+    var(--gold) 50%,
+    var(--emerald-soft) 70%,
+    transparent 100%
+  );
+}
+
+/* Hidden scrollbar for canvas-like areas */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Focus ring override for premium feel */
+.focus-tropical:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}

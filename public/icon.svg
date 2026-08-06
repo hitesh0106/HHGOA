@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F5132"/>
+      <stop offset="1" stop-color="#06301E"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="20" y1="14" x2="44" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4B400"/>
+      <stop offset="1" stop-color="#E07F00"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <!-- palm frond silhouette -->
+  <g transform="translate(8 6) rotate(-12)">
+    <path d="M24 4 C 18 18, 12 30, 4 48" stroke="#2E8B57" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+    <g fill="#3CB371">
+      <ellipse cx="22" cy="10" rx="6" ry="2.4" transform="rotate(-32 22 10)"/>
+      <ellipse cx="18" cy="18" rx="7" ry="2.6" transform="rotate(-38 18 18)"/>
+      <ellipse cx="14" cy="26" rx="7" ry="2.6" transform="rotate(-44 14 26)"/>
+      <ellipse cx="10" cy="34" rx="6" ry="2.4" transform="rotate(-50 10 34)"/>
+      <ellipse cx="6" cy="42" rx="5" ry="2" transform="rotate(-56 6 42)"/>
+    </g>
+  </g>
+  <!-- golden sun/sparkle -->
+  <circle cx="44" cy="22" r="9" fill="url(#gold)"/>
+  <path d="M44 8 L45 13 L50 14 L45 15 L44 20 L43 15 L38 14 L43 13 Z" fill="#FFE7A0"/>
+</svg>

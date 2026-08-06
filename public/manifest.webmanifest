@@ -1,0 +1,50 @@
+{
+  "name": "HH Goa 2026 Builder Identity Generator",
+  "short_name": "HH Goa Builder",
+  "description": "Upload your photo and create your premium HH Goa 2026 Builder Identity card or circular Profile Frame in seconds.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8E7",
+  "theme_color": "#0F3A2C",
+  "categories": ["design", "productivity", "graphics"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Upload Photo",
+      "url": "/#studio",
+      "description": "Start building your Builder Identity"
+    },
+    {
+      "name": "Examples",
+      "url": "/#examples",
+      "description": "See example Builder ID cards"
+    }
+  ]
+}
