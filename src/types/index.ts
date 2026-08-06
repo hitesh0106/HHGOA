@@ -1,5 +1,5 @@
 /**
- * Type definitions for the HH Goa 2026 Builder ID Generator.
+ * Type definitions for the HH Goa 2026 Builder Identity Generator.
  */
 
 /** The two generation modes the user can choose between. */
@@ -29,31 +29,18 @@ export interface PhotoState {
   loadedAt: number;
 }
 
-/** Builder Levels (gamified rarity). */
-export type BuilderLevel = "bronze" | "silver" | "gold" | "platinum";
-
 /** Form values for the Builder ID card. */
 export interface BuilderFormValues {
   name: string;
   role: string;
-  college: string;
-  github: string;
-  xHandle: string;
   builderTitle: string;
-  builderLevel: BuilderLevel;
-  badge: string;
 }
 
 /** Persisted form draft in localStorage. */
 export interface PersistedDraft {
   name: string;
   role: string;
-  college: string;
-  github: string;
-  xHandle: string;
   builderTitle: string;
-  builderLevel: BuilderLevel;
-  badge: string;
   mode: GeneratorMode;
   /** Small data-URL thumbnail of the last uploaded photo. */
   photoThumb?: string;
@@ -80,23 +67,4 @@ export interface CroppedAreaPixels {
   y: number;
   width: number;
   height: number;
-}
-
-/** Builder Level definition with rarity styling. */
-export interface LevelDefinition {
-  id: BuilderLevel;
-  label: string;
-  /** Tailwind-compatible gradient stops. */
-  gradient: [string, string];
-  /** Hex color used for SVG fills / QR accents. */
-  hex: string;
-  glow: string;
-  rarity: string;
-}
-
-/** A random fun badge definition. */
-export interface BadgeDefinition {
-  id: string;
-  label: string;
-  emoji: string;
 }

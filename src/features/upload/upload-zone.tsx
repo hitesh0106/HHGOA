@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, ImagePlus, Camera, Sparkles, X, AlertCircle, Loader2, Clipboard } from "lucide-react";
+import { Upload, ImagePlus, Camera, Sparkles, X, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { usePhotoUpload } from "@/hooks/use-photo-upload";
 import { APP_CONFIG } from "@/constants";
@@ -16,10 +16,8 @@ interface UploadZoneProps {
 }
 
 /**
- * Drag & drop + file picker + mobile camera + paste upload zone. Handles
- * HEIC conversion in-browser. Toasts surface validation errors and
- * conversions. Listens for `paste` events on window so the user can
- * Cmd/Ctrl+V a screenshot directly.
+ * Drag & drop + file picker + mobile camera upload zone. Handles HEIC
+ * conversion in-browser. Toasts surface validation errors and conversions.
  */
 export function UploadZone({ onPhotoLoaded, className, compact = false }: UploadZoneProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -38,29 +36,6 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
     },
     onError: (msg) => toast.error(msg),
   });
-
-  // Paste-to-upload: listen for paste events on window. If a file is on the
-  // clipboard, hand it off to the same validator + converter.
-  React.useEffect(() => {
-    const onPaste = (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.kind === "file") {
-          const file = item.getAsFile();
-          if (file) {
-            e.preventDefault();
-            void handleFile(file);
-            toast.success("Pasted image");
-            return;
-          }
-        }
-      }
-    };
-    window.addEventListener("paste", onPaste);
-    return () => window.removeEventListener("paste", onPaste);
-  }, [handleFile]);
 
   const onDrop = React.useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -103,6 +78,7 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) void handleFile(file);
+      // Reset so the same file can be re-selected later.
       e.target.value = "";
     },
     [handleFile]
@@ -114,7 +90,7 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
         type="button"
         onClick={() => inputRef.current?.click()}
         className={cn(
-          "group inline-flex items-center gap-2 rounded-full border border-emerald/20 bg-card px-4 py-2 text-sm font-medium text-emerald-deep shadow-luxe transition-all hover:shadow-luxe-lg hover:border-emerald/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2",
+          "group inline-flex items-center gap-2 rounded-full border border-emerald/20 bg-card px-4 py-2 text-sm font-medium text-emerald-deep shadow-tropical transition-all hover:shadow-tropical-lg hover:border-emerald/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2",
           className
         )}
       >
@@ -140,7 +116,7 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
       <motion.div
         role="button"
         tabIndex={0}
-        aria-label="Upload a photo by clicking, dragging a file, or pasting from clipboard"
+        aria-label="Upload a photo by clicking or dragging a file here"
         onClick={() => inputRef.current?.click()}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -154,13 +130,13 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
         whileHover={{ scale: 1.005 }}
         whileTap={{ scale: 0.99 }}
         className={cn(
-          "group relative flex min-h-[280px] sm:min-h-[340px] cursor-pointer flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl border-2 border-dashed p-8 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-4",
+          "group relative flex min-h-[260px] sm:min-h-[320px] cursor-pointer flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl border-2 border-dashed p-8 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-4",
           dragActive
-            ? "border-emerald bg-emerald/8 shadow-luxe-lg scale-[1.005]"
-            : "border-emerald/25 bg-card/70 hover:border-emerald/45 hover:bg-card hover:shadow-luxe"
+            ? "border-emerald bg-emerald/8 shadow-tropical-lg scale-[1.005]"
+            : "border-emerald/25 bg-card/70 hover:border-emerald/45 hover:bg-card hover:shadow-tropical"
         )}
       >
-        {/* Animated radial hover */}
+        {/* Animated ring */}
         <motion.div
           aria-hidden
           className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
@@ -181,12 +157,12 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
             >
               <div className="relative">
                 <div className="absolute inset-0 animate-ping rounded-full bg-gold/30" />
-                <div className="relative grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-emerald to-emerald-deep text-ivory shadow-luxe">
+                <div className="relative grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-emerald to-emerald-deep text-ivory shadow-tropical">
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
               </div>
               <div>
-                <p className="font-display text-lg text-emerald-deep">Converting HEIC…</p>
+                <p className="font-serif text-lg text-emerald-deep">Converting HEIC…</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Hang tight, this only takes a moment.
                 </p>
@@ -202,13 +178,15 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
             >
               <motion.div
                 animate={
-                  dragActive ? { scale: 1.08, y: -4 } : { scale: 1, y: 0 }
+                  dragActive
+                    ? { scale: 1.08, y: -4 }
+                    : { scale: 1, y: 0 }
                 }
                 transition={{ type: "spring", stiffness: 320, damping: 18 }}
                 className="relative"
               >
-                <div className="absolute -inset-3 rounded-full bg-gradient-to-br from-gold/40 via-rose/30 to-emerald-soft/40 blur-xl" />
-                <div className="relative grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-emerald to-emerald-deep text-ivory shadow-luxe-lg transition-transform duration-300 group-hover:scale-105">
+                <div className="absolute -inset-3 rounded-full bg-gradient-to-br from-gold/40 via-coral/30 to-emerald-soft/40 blur-xl" />
+                <div className="relative grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-emerald to-emerald-deep text-ivory shadow-tropical-lg transition-transform duration-300 group-hover:scale-105">
                   <Upload className="h-9 w-9" strokeWidth={2.4} />
                   <span className="absolute -right-1 -top-1 grid h-7 w-7 place-items-center rounded-full bg-gold text-emerald-deep shadow-gold-glow">
                     <Sparkles className="h-3.5 w-3.5" />
@@ -217,7 +195,7 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
               </motion.div>
 
               <div className="space-y-1.5">
-                <h3 className="font-display text-xl sm:text-2xl text-emerald-deep">
+                <h3 className="font-serif text-xl sm:text-2xl text-emerald-deep">
                   {dragActive ? "Drop to upload" : "Drag & drop your photo"}
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -225,7 +203,7 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
                   <span className="font-medium text-emerald underline-offset-4 group-hover:underline">
                     browse files
                   </span>{" "}
-                  · paste from clipboard · JPG · PNG · WEBP · HEIC
+                  · JPG · PNG · WEBP · HEIC
                 </p>
               </div>
 
@@ -236,7 +214,7 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
                     e.stopPropagation();
                     inputRef.current?.click();
                   }}
-                  className="inline-flex items-center gap-2 rounded-full bg-emerald px-5 py-2.5 text-sm font-semibold text-ivory shadow-luxe transition-all hover:bg-emerald-deep hover:shadow-luxe-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
+                  className="inline-flex items-center gap-2 rounded-full bg-emerald px-5 py-2.5 text-sm font-semibold text-ivory shadow-tropical transition-all hover:bg-emerald-deep hover:shadow-tropical-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
                 >
                   <ImagePlus className="h-4 w-4" />
                   Upload photo
@@ -251,17 +229,6 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
                 >
                   <Camera className="h-4 w-4" />
                   Use camera
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toast.info("Press ⌘/Ctrl + V to paste an image from your clipboard.");
-                  }}
-                  className="inline-flex items-center gap-2 rounded-full border border-emerald/25 bg-card px-5 py-2.5 text-sm font-semibold text-emerald-deep transition-all hover:border-emerald/45 hover:bg-emerald/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
-                >
-                  <Clipboard className="h-4 w-4" />
-                  Paste
                 </button>
               </div>
 
@@ -297,7 +264,7 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="mt-3 flex items-start gap-2 rounded-xl border border-rose/30 bg-rose-soft/30 p-3 text-sm text-rose-deep"
+            className="mt-3 flex items-start gap-2 rounded-xl border border-coral/30 bg-coral-soft/30 p-3 text-sm text-coral-deep"
             role="alert"
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -305,7 +272,7 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
             <button
               type="button"
               onClick={() => {}}
-              className="text-rose-deep/70 hover:text-rose-deep"
+              className="text-coral-deep/70 hover:text-coral-deep"
               aria-label="Dismiss"
             >
               <X className="h-4 w-4" />

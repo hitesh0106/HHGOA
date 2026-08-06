@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Heart, Sparkle, Twitter } from "lucide-react";
+import { Heart, Github, Twitter, Sparkle } from "lucide-react";
 import { APP_CONFIG } from "@/constants";
-import { PalmFrond, SandWave, DotPattern } from "@/components/decor/tropical";
+import { PalmFrond, SandWave } from "@/components/decor/tropical";
 
 interface FooterProps {
   onReset?: () => void;
@@ -12,9 +12,8 @@ interface FooterProps {
 }
 
 /**
- * Premium dark footer with palm decorations, glow, and a sleek three-column
- * layout. Always sticks to the bottom of the viewport thanks to the parent
- * flex column.
+ * Sticky-pinned tropical footer. Includes edition mark, links and a
+ * subtle "Built with care" credit. No external network calls.
  */
 export function Footer({ onReset, className }: FooterProps) {
   return (
@@ -29,18 +28,15 @@ export function Footer({ onReset, className }: FooterProps) {
         className="absolute -right-16 -bottom-16 w-72 text-emerald opacity-40"
         style={{ transform: "rotate(160deg)" }}
       />
-      <DotPattern
-        className="absolute inset-0 h-full w-full text-ivory"
-        style={{ opacity: 0.06 }}
-      />
-
-      {/* Top gold glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-24 left-1/2 h-48 w-[80%] -translate-x-1/2 rounded-full opacity-40 blur-3xl"
-      >
-        <div className="h-full w-full rounded-full bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
-      </div>
+        className="pointer-events-none absolute inset-0 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            "radial-gradient(oklch(0.985 0.012 90) 1.2px, transparent 1.2px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
 
       <div className="relative mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-16">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
@@ -51,26 +47,26 @@ export function Footer({ onReset, className }: FooterProps) {
                 <Sparkle className="h-4 w-4" />
               </span>
               <div>
-                <p className="font-display text-lg tracking-wide">
-                  HH Goa <span className="text-gradient-gold">2026</span>
+                <p className="font-serif text-lg tracking-wide">
+                  HH Goa 2026
                 </p>
-                <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ivory/60">
-                  Builder ID Studio
+                <p className="text-[10px] uppercase tracking-[0.28em] text-ivory/60">
+                  Builder Identity Studio
                 </p>
               </div>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-ivory/70">
-              Build your Builder ID in seconds. Upload a photo, pick your stack,
-              get a random Builder Title + Fun Badge, then download a premium
-              event-badge PNG and share to X with{" "}
-              <span className="font-mono text-gold">#FrameInGoa</span>.
+              An independent Builder Identity generator inspired by the HH Goa
+              2026 builder/hacker/startup festival mood. The palette, layout,
+              illustration style and typography are original creations made for
+              this project — not affiliated with any official HH Goa property.
             </p>
           </div>
 
           {/* Links */}
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
             <div>
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-gold">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold">
                 Build
               </p>
               <ul className="mt-3 space-y-2 text-sm text-ivory/80">
@@ -90,22 +86,11 @@ export function Footer({ onReset, className }: FooterProps) {
                     Open Studio
                   </a>
                 </li>
-                {onReset && (
-                  <li>
-                    <button
-                      type="button"
-                      onClick={onReset}
-                      className="text-ivory/60 transition-colors hover:text-rose"
-                    >
-                      Clear saved data
-                    </button>
-                  </li>
-                )}
               </ul>
             </div>
 
             <div>
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-gold">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold">
                 Connect
               </p>
               <ul className="mt-3 space-y-2 text-sm text-ivory/80">
@@ -122,25 +107,37 @@ export function Footer({ onReset, className }: FooterProps) {
                 </li>
                 <li>
                   <a
-                    href={`https://twitter.com/search?q=%23${APP_CONFIG.hashtag}`}
+                    href="https://hhgoa.com"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 transition-colors hover:text-gold"
                   >
-                    <span className="font-mono">#{APP_CONFIG.hashtag}</span>
+                    <Github className="h-3.5 w-3.5" />
+                    Inspiration
                   </a>
                 </li>
+                {onReset && (
+                  <li>
+                    <button
+                      type="button"
+                      onClick={onReset}
+                      className="inline-flex items-center gap-2 text-ivory/60 transition-colors hover:text-coral"
+                    >
+                      Clear saved data
+                    </button>
+                  </li>
+                )}
               </ul>
             </div>
 
             <div>
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-gold">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold">
                 Edition
               </p>
               <ul className="mt-3 space-y-2 text-sm text-ivory/80">
                 <li>Goa · 2026</li>
                 <li>1080 × 1080 PNG</li>
-                <li>2× retina export</li>
+                <li>{APP_CONFIG.hashtag}</li>
               </ul>
             </div>
           </div>
@@ -149,7 +146,7 @@ export function Footer({ onReset, className }: FooterProps) {
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-ivory/10 pt-6 text-xs text-ivory/60 sm:flex-row">
           <p className="inline-flex items-center gap-1.5">
             Built with
-            <Heart className="h-3 w-3 fill-rose text-rose" />
+            <Heart className="h-3 w-3 fill-coral text-coral" />
             for the builder community · 100% client-side
           </p>
           <p>

@@ -140,15 +140,12 @@ export async function detectPhotoOrientation(
 
 /**
  * Produce the cropped image as a Canvas, given the source image and the
- * pixel crop area produced by react-easy-crop. Supports an optional
- * rotation (in degrees) which is applied to the source image before
- * cropping.
+ * pixel crop area produced by react-easy-crop.
  */
 export async function getCroppedCanvas(
   imageSrc: string,
   pixelCrop: { x: number; y: number; width: number; height: number },
-  outputSize?: number,
-  rotation = 0
+  outputSize?: number
 ): Promise<HTMLCanvasElement> {
   const image = await loadImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -159,53 +156,30 @@ export async function getCroppedCanvas(
   if (!ctx) throw new Error("Could not get 2D canvas context");
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-
-  if (rotation) {
-    // Apply rotation around the centre of the crop area, then draw the image.
-    const rad = (rotation * Math.PI) / 180;
-    ctx.save();
-    ctx.translate(targetSize / 2, targetSize / 2);
-    ctx.rotate(rad);
-    ctx.translate(-targetSize / 2, -targetSize / 2);
-    ctx.drawImage(
-      image,
-      pixelCrop.x,
-      pixelCrop.y,
-      pixelCrop.width,
-      pixelCrop.height,
-      0,
-      0,
-      targetSize,
-      targetSize
-    );
-    ctx.restore();
-  } else {
-    ctx.drawImage(
-      image,
-      pixelCrop.x,
-      pixelCrop.y,
-      pixelCrop.width,
-      pixelCrop.height,
-      0,
-      0,
-      targetSize,
-      targetSize
-    );
-  }
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    targetSize,
+    targetSize
+  );
   return canvas;
 }
 
 /**
  * Get a square crop data URL — used as the circular avatar source for the
- * Profile Frame and Builder ID card. Supports rotation.
+ * Profile Frame and Builder ID card.
  */
 export async function getCroppedAvatarDataUrl(
   imageSrc: string,
   pixelCrop: { x: number; y: number; width: number; height: number },
-  outputSize = 720,
-  rotation = 0
+  outputSize = 720
 ): Promise<string> {
-  const canvas = await getCroppedCanvas(imageSrc, pixelCrop, outputSize, rotation);
+  const canvas = await getCroppedCanvas(imageSrc, pixelCrop, outputSize);
   return canvas.toDataURL("image/png");
 }
 
