@@ -1,23 +1,21 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkle, Github, Twitter, Menu, X } from "lucide-react";
-import { APP_CONFIG } from "@/constants";
+import { motion } from "framer-motion";
+import { Sparkle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SiteNavProps {
-  onStart: () => void;
   className?: string;
 }
 
 /**
- * Sticky glassy top nav. Brand mark + primary CTA only — the page is
- * intentionally lean (just the generator), so there are no section links.
+ * Minimal sticky nav — logo only.
+ * No social icons, no CTAs, no mobile menu.
+ * Apple / Linear inspired.
  */
-export function SiteNav({ onStart, className }: SiteNavProps) {
+export function SiteNav({ className }: SiteNavProps) {
   const [scrolled, setScrolled] = React.useState(false);
-  const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -39,8 +37,8 @@ export function SiteNav({ onStart, className }: SiteNavProps) {
         className
       )}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-        {/* Logo */}
+      <div className="mx-auto flex h-16 max-w-6xl items-center px-5 sm:px-8">
+        {/* Logo only */}
         <a
           href="#hero"
           className="group flex items-center gap-2 rounded-full px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
@@ -59,79 +57,7 @@ export function SiteNav({ onStart, className }: SiteNavProps) {
             </span>
           </span>
         </a>
-
-        {/* Desktop actions */}
-        <div className="hidden items-center gap-2 md:flex">
-          <a
-            href={`https://twitter.com/${APP_CONFIG.twitterHandle}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Follow on X"
-            className="grid h-9 w-9 place-items-center rounded-full text-emerald-deep/80 transition-colors hover:bg-emerald/8 hover:text-emerald-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          >
-            <Twitter className="h-4 w-4" />
-          </a>
-          <a
-            href="https://hhgoa.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="View inspiration source"
-            className="grid h-9 w-9 place-items-center rounded-full text-emerald-deep/80 transition-colors hover:bg-emerald/8 hover:text-emerald-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          >
-            <Github className="h-4 w-4" />
-          </a>
-          <motion.button
-            type="button"
-            onClick={onStart}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            className="ml-1 inline-flex h-9 items-center gap-1.5 rounded-full bg-gradient-to-br from-emerald to-emerald-deep px-4 text-sm font-semibold text-ivory shadow-tropical focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
-          >
-            <Sparkle className="h-3.5 w-3.5" />
-            Build yours
-          </motion.button>
-        </div>
-
-        {/* Mobile trigger */}
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          className="grid h-10 w-10 place-items-center rounded-full text-emerald-deep transition-colors hover:bg-emerald/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold md:hidden"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
       </div>
-
-      {/* Mobile sheet */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            className="md:hidden"
-          >
-            <div className="glass-tropical border-t border-emerald/10 px-5 py-4">
-              <nav className="flex flex-col gap-1" aria-label="Mobile">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOpen(false);
-                    onStart();
-                  }}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-emerald to-emerald-deep px-4 text-sm font-semibold text-ivory shadow-tropical"
-                >
-                  <Sparkle className="h-4 w-4" />
-                  Build yours
-                </button>
-              </nav>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.header>
   );
 }

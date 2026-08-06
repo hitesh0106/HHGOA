@@ -2,11 +2,21 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, Twitter, Loader2, Check, Sparkles, RotateCcw, Share2 } from "lucide-react";
+import {
+  Download,
+  Twitter,
+  Loader2,
+  Check,
+  Sparkles,
+  RotateCcw,
+  Link2,
+  Copy,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { APP_CONFIG, buildTwitterShareUrl } from "@/constants";
-import { cn, triggerDownload } from "@/lib/utils";
+import { buildShareUrl } from "@/lib/share";
+import { cn } from "@/lib/utils";
 import type { GenerateResult } from "@/types";
 
 interface ActionButtonsProps {
@@ -15,12 +25,13 @@ interface ActionButtonsProps {
   result: GenerateResult | null;
   onGenerate: () => void;
   onDownload: () => void;
+  /** Builder data for the Copy Link feature. */
+  shareData?: { name: string; role: string; builderTitle: string };
   className?: string;
 }
 
 /**
- * The Generate / Download / Share to X action cluster. Animates between
- * three states: idle (Generate), working (spinner), done (Download + Share).
+ * Action cluster: Generate → Download + Share to X + Copy Link + Regenerate.
  */
 export function ActionButtons({
   isGenerating,
@@ -28,8 +39,11 @@ export function ActionButtons({
   result,
   onGenerate,
   onDownload,
+  shareData,
   className,
 }: ActionButtonsProps) {
+  const [copied, setCopied] = React.useState(false);
+
   const handleShare = React.useCallback(() => {
     const url = buildTwitterShareUrl(APP_CONFIG.shareText);
     window.open(url, "_blank", "noopener,noreferrer,width=620,height=540");
@@ -38,8 +52,28 @@ export function ActionButtons({
     });
   }, []);
 
+  const handleCopyLink = React.useCallback(async () => {
+    if (!shareData) {
+      toast.error("Fill in your name and role first.");
+      return;
+    }
+    const url = buildShareUrl(shareData);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Share link copied!", {
+        description: "Paste it anywhere to show off your Builder ID.",
+      });
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Fallback: open the URL in a new window so the user can copy manually.
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast.info("Opened share link in a new tab — copy the URL to share.");
+    }
+  }, [shareData]);
+
   return (
-    <div className={cn("flex flex-col gap-3 sm:flex-row", className)}>
+    <div className={cn("flex flex-col gap-3 sm:flex-row sm:flex-wrap", className)}>
       <AnimatePresence mode="wait">
         {!hasGenerated ? (
           <motion.div
@@ -83,7 +117,7 @@ export function ActionButtons({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row"
+            className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap"
           >
             <Button
               type="button"
@@ -101,6 +135,24 @@ export function ActionButtons({
             >
               <Twitter className="mr-2 h-5 w-5 transition-transform group-hover:-rotate-6" />
               Share to X
+            </Button>
+            <Button
+              type="button"
+              onClick={handleCopyLink}
+              variant="outline"
+              className="group relative h-14 flex-1 overflow-hidden rounded-2xl border-2 border-emerald/25 bg-card px-6 text-base font-semibold text-emerald-deep transition-all hover:border-emerald/45 hover:bg-emerald/5 sm:flex-none"
+            >
+              {copied ? (
+                <>
+                  <Check className="mr-2 h-5 w-5 text-emerald" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Link2 className="mr-2 h-5 w-5 transition-transform group-hover:scale-110" />
+                  Copy Link
+                </>
+              )}
             </Button>
             <Button
               type="button"

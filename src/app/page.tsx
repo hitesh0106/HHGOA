@@ -5,30 +5,67 @@ import { SiteNav } from "@/components/sections/site-nav";
 import { Hero } from "@/components/sections/hero";
 import { Footer } from "@/components/sections/footer";
 import { Studio } from "@/features/studio";
+import { ShareView } from "@/features/share/share-view";
+import { decodeShareData } from "@/lib/share";
 
 /**
- * Single-page composition focused on the generator flow only:
- * Hero → Studio (upload → crop → generate → download → share to X).
+ * Single-page app with two views:
  *
- * No login wall, no marketing fluff — just the tool, start to finish.
+ * 1. GENERATOR (default) — Hero + Studio (upload → crop → generate → download → share)
+ * 2. SHARE VIEW (?share=<encoded>) — Premium showcase page when someone opens a copied link
+ *
+ * The share param contains base64-encoded builder data (name, role, title).
  */
 export default function Home() {
-  const scrollToStudio = React.useCallback(() => {
-    const el = document.getElementById("studio");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+  const [shareData, setShareData] = React.useState<
+    ReturnType<typeof decodeShareData> | null
+  >(null);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const share = params.get("share");
+    if (share) {
+      const decoded = decodeShareData(share);
+      if (decoded) {
+        setShareData(decoded);
+      }
     }
   }, []);
 
+  const handleBackToGenerator = React.useCallback(() => {
+    // Clear the share param and switch to generator view.
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("share");
+      window.history.pushState({}, "", url.toString());
+    }
+    setShareData(null);
+    // Scroll to top.
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // Share view — premium showcase page
+  if (shareData) {
+    return (
+      <div className="relative flex min-h-screen flex-col bg-background">
+        <SiteNav />
+        <main className="flex-1">
+          <ShareView data={shareData} onBackToGenerator={handleBackToGenerator} />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Generator view — default
   return (
     <div className="relative flex min-h-screen flex-col bg-background">
-      <SiteNav onStart={scrollToStudio} />
-
+      <SiteNav />
       <main className="flex-1">
-        <Hero onStart={scrollToStudio} />
+        <Hero />
         <Studio />
       </main>
-
       <Footer />
     </div>
   );

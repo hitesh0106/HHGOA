@@ -427,6 +427,7 @@ export function Studio({ className }: StudioProps) {
                   result={lastResult}
                   onGenerate={handleGenerate}
                   onDownload={handleDownload}
+                  shareData={{ name, role, builderTitle }}
                 />
               </div>
 

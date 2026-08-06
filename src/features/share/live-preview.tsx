@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Maximize2, Eye } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ProfileFrameCard } from "@/components/frames/profile-frame-card";
 import { BuilderIdCard } from "@/components/frames/builder-id-card";
 import type { GeneratorMode } from "@/types";
@@ -21,10 +21,15 @@ interface LivePreviewProps {
 }
 
 /**
- * Live preview with a single 1080×1080 render node. The same DOM node is
- * visually scaled down for the user AND captured by html-to-image at full
- * resolution (CSS transforms do not affect html-to-image's output size —
- * it reads the layout box, not the painted box).
+ * Live preview with TWO render nodes:
+ *
+ * 1. VISIBLE PREVIEW — scaled down 1080×1080 card with HUD overlays (Live
+ *    indicator, resolution badge) for the user to see while editing.
+ *
+ * 2. HIDDEN EXPORT TARGET — a full-size 1080×1080 node positioned off-screen
+ *    (left: -99999px) that contains ONLY the card artwork with ZERO editor
+ *    overlays. html-to-image captures THIS node, so the exported PNG is
+ *    always a clean poster — never a screenshot of the editor.
  */
 export function LivePreview({
   mode,
@@ -39,17 +44,12 @@ export function LivePreview({
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [scale, setScale] = React.useState(0.42);
 
-  // Measure the visible container and compute the scale factor so the
-  // 1080×1080 render node always fits perfectly.
   React.useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const update = () => {
       const width = el.clientWidth;
-      if (width > 0) {
-        // 1080 is the native render size.
-        setScale(width / 1080);
-      }
+      if (width > 0) setScale(width / 1080);
     };
     update();
     const ro = new ResizeObserver(update);
@@ -57,8 +57,20 @@ export function LivePreview({
     return () => ro.disconnect();
   }, []);
 
+  const card = mode === "profile-frame" ? (
+    <ProfileFrameCard avatarUrl={avatarUrl} name={name} />
+  ) : (
+    <BuilderIdCard
+      avatarUrl={avatarUrl}
+      name={name}
+      role={role}
+      builderTitle={builderTitle}
+    />
+  );
+
   return (
     <div className={cn("relative", className)}>
+      {/* ============ VISIBLE PREVIEW (with editor HUD) ============ */}
       <div
         ref={containerRef}
         className="relative mx-auto w-full max-w-[480px] sm:max-w-[540px]"
@@ -68,8 +80,7 @@ export function LivePreview({
           className="relative aspect-square w-full overflow-hidden rounded-3xl border border-emerald/15 bg-emerald-deep/5 shadow-tropical-lg"
           transition={{ type: "spring", stiffness: 280, damping: 26 }}
         >
-          {/* The 1080x1080 render node. Scaled visually but laid out at
-              native size — html-to-image captures this exact node. */}
+          {/* Scaled card preview */}
           <div
             style={{
               width: 1080,
@@ -79,24 +90,13 @@ export function LivePreview({
             }}
             className="absolute left-0 top-0"
           >
-            <div ref={renderRef} className="relative">
-              {mode === "profile-frame" ? (
-                <ProfileFrameCard
-                  avatarUrl={avatarUrl}
-                  name={name}
-                />
-              ) : (
-                <BuilderIdCard
-                  avatarUrl={avatarUrl}
-                  name={name}
-                  role={role}
-                  builderTitle={builderTitle}
-                />
-              )}
-            </div>
+            {/* NOTE: This inner div does NOT carry renderRef. The visible
+                preview is for the user only — it has HUD overlays that must
+                never end up in the exported PNG. */}
+            {card}
           </div>
 
-          {/* Premium frame chrome */}
+          {/* Frame chrome */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 rounded-3xl"
@@ -118,7 +118,6 @@ export function LivePreview({
 
         {/* HUD: resolution */}
         <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-emerald-deep/70 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-ivory backdrop-blur">
-          <Maximize2 className="h-2.5 w-2.5" />
           1080 × 1080
         </div>
 
@@ -145,12 +144,34 @@ export function LivePreview({
                   Rendering PNG…
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Crisp 1080×1080 retina export
+                  Crisp 1080×1080 export
                 </p>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* ============ HIDDEN EXPORT TARGET (clean, no overlays) ============
+          This is what html-to-image captures. It is laid out at the full
+          1080×1080 native resolution and positioned off-screen so it never
+          interferes with the visible layout. It contains ONLY the card
+          artwork — no HUD, no borders, no shadows, no editor controls. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: -99999,
+          top: 0,
+          width: 1080,
+          height: 1080,
+          overflow: "hidden",
+          pointerEvents: "none",
+        }}
+      >
+        <div ref={renderRef} className="relative">
+          {card}
+        </div>
       </div>
     </div>
   );

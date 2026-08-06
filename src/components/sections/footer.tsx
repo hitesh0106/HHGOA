@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Sparkle } from "lucide-react";
+import { TreePalm } from "lucide-react";
 import { APP_CONFIG } from "@/constants";
-import { SandWave } from "@/components/decor/tropical";
 
 interface FooterProps {
   onReset?: () => void;
@@ -11,60 +10,62 @@ interface FooterProps {
 }
 
 /**
- * Minimal tropical footer — three lines only:
- *  · 2026 HH-GOA. ALL RIGHTS RESERVED.
- *  · HHGOA.COM
- *  · #FrameInGoa
+ * Premium minimal footer — Apple / Linear / Vercel inspired.
+ *
+ * Layout:
+ *   Left:  🌴 © 2026 HH-GOA. ALL RIGHTS RESERVED.
+ *   Right: HHGOA.COM · #FrameInGoa
+ *
+ * Font: IBM Plex Mono · 14px · uppercase · 0.08em tracking
+ * Background: dark forest green (#0F4A3A)
+ * Height: 72-80px · thin top border
+ * Mobile: stacks vertically with proper spacing.
  */
-export function Footer({ onReset, className }: FooterProps) {
+export function Footer({ className }: FooterProps) {
   return (
     <footer
-      className={`relative isolate mt-auto overflow-hidden bg-emerald-deep text-ivory ${className ?? ""}`}
+      className={`relative mt-auto border-t border-white/[0.06] bg-[#0F4A3A] ${className ?? ""}`}
+      style={{ minHeight: 72 }}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage:
-            "radial-gradient(oklch(0.985 0.012 90) 1.2px, transparent 1.2px)",
-          backgroundSize: "28px 28px",
-        }}
-      />
+      <div className="mx-auto flex h-[72px] max-w-[1400px] flex-col items-center justify-center gap-3 px-8 py-4 sm:flex-row sm:justify-between sm:px-12 md:h-[80px]">
+        {/* Left section */}
+        <div className="flex items-center gap-2.5">
+          <TreePalm
+            className="h-4 w-4 shrink-0 text-[#FFC83D]"
+            strokeWidth={2}
+            aria-hidden="true"
+          />
+          <span
+            className="font-mono text-[13px] uppercase leading-none tracking-[0.08em] text-white/75 sm:text-sm"
+            style={{ fontFamily: "var(--font-ibm-plex-mono), monospace" }}
+          >
+            © 2026 HH-GOA. ALL RIGHTS RESERVED.
+          </span>
+        </div>
 
-      <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-4 px-5 py-10 text-center sm:px-8 sm:py-12">
-        {/* Brand mark */}
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-gold to-gold-deep text-emerald-deep shadow-gold-glow">
-          <Sparkle className="h-4 w-4" />
-        </span>
-
-        {/* Three lines */}
-        <div className="flex flex-col items-center gap-2 font-sans text-sm tracking-[0.18em] uppercase text-ivory/80">
-          <p className="font-medium">
-            2026 HH-GOA. ALL RIGHTS RESERVED.
-          </p>
+        {/* Right section */}
+        <div className="flex items-center gap-4">
           <a
             href="https://hhgoa.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-serif text-base tracking-wide text-gold transition-colors hover:text-gold-soft"
+            className="font-mono text-[13px] uppercase leading-none tracking-[0.08em] text-white/75 transition-colors hover:text-white sm:text-sm"
+            style={{ fontFamily: "var(--font-ibm-plex-mono), monospace" }}
           >
             HHGOA.COM
           </a>
-          <p className="font-medium text-gold">#{APP_CONFIG.hashtag}</p>
-        </div>
-
-        {onReset && (
-          <button
-            type="button"
-            onClick={onReset}
-            className="mt-2 text-xs text-ivory/50 transition-colors hover:text-coral"
+          <span
+            className="hidden h-3 w-px bg-white/20 sm:inline-block"
+            aria-hidden="true"
+          />
+          <span
+            className="font-mono text-[13px] uppercase leading-none tracking-[0.08em] text-[#FFC83D] sm:text-sm"
+            style={{ fontFamily: "var(--font-ibm-plex-mono), monospace" }}
           >
-            Clear saved data
-          </button>
-        )}
+            #{APP_CONFIG.hashtag}
+          </span>
+        </div>
       </div>
-
-      <SandWave className="absolute -top-px left-0 h-8 w-full text-ivory opacity-20" />
     </footer>
   );
 }

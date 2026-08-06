@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Fraunces } from "next/font/google";
+import { Inter, Fraunces, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { AppToaster } from "@/components/app-toaster";
 
@@ -14,6 +14,13 @@ const fraunces = Fraunces({
   subsets: ["latin"],
   display: "swap",
   axes: ["opsz", "SOFT", "WONK"],
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-plex-mono",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600"],
 });
 
 const siteUrl = "https://hh-goa-builder.vercel.app";
@@ -141,7 +148,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${fraunces.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${inter.variable} ${fraunces.variable} ${ibmPlexMono.variable} font-sans antialiased bg-background text-foreground`}
       >
         {children}
         <AppToaster />
