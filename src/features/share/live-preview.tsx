@@ -2,18 +2,18 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Maximize2, Eye } from "lucide-react";
+import { Loader2, Maximize2 } from "lucide-react";
 import { ProfileFrameCard } from "@/components/frames/profile-frame-card";
 import { BuilderIdCard } from "@/components/frames/builder-id-card";
-import type { GeneratorMode } from "@/types";
+import type { BuilderFormValues, GeneratorMode } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface LivePreviewProps {
   mode: GeneratorMode;
   avatarUrl: string | null;
-  name: string;
-  role: string;
-  builderTitle: string;
+  values: BuilderFormValues;
+  uniqueId: string;
+  qrCodeUrl: string | null;
   isGenerating: boolean;
   /** Forwarded so the parent can hand the node to html-to-image. */
   renderRef?: React.RefObject<HTMLDivElement | null>;
@@ -23,15 +23,14 @@ interface LivePreviewProps {
 /**
  * Live preview with a single 1080×1080 render node. The same DOM node is
  * visually scaled down for the user AND captured by html-to-image at full
- * resolution (CSS transforms do not affect html-to-image's output size —
- * it reads the layout box, not the painted box).
+ * resolution.
  */
 export function LivePreview({
   mode,
   avatarUrl,
-  name,
-  role,
-  builderTitle,
+  values,
+  uniqueId,
+  qrCodeUrl,
   isGenerating,
   renderRef,
   className,
@@ -39,17 +38,12 @@ export function LivePreview({
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [scale, setScale] = React.useState(0.42);
 
-  // Measure the visible container and compute the scale factor so the
-  // 1080×1080 render node always fits perfectly.
   React.useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const update = () => {
       const width = el.clientWidth;
-      if (width > 0) {
-        // 1080 is the native render size.
-        setScale(width / 1080);
-      }
+      if (width > 0) setScale(width / 1080);
     };
     update();
     const ro = new ResizeObserver(update);
@@ -65,11 +59,9 @@ export function LivePreview({
       >
         <motion.div
           layout
-          className="relative aspect-square w-full overflow-hidden rounded-3xl border border-emerald/15 bg-emerald-deep/5 shadow-tropical-lg"
+          className="relative aspect-square w-full overflow-hidden rounded-3xl border border-emerald/15 bg-emerald-deep/5 shadow-luxe-lg"
           transition={{ type: "spring", stiffness: 280, damping: 26 }}
         >
-          {/* The 1080x1080 render node. Scaled visually but laid out at
-              native size — html-to-image captures this exact node. */}
           <div
             style={{
               width: 1080,
@@ -83,14 +75,24 @@ export function LivePreview({
               {mode === "profile-frame" ? (
                 <ProfileFrameCard
                   avatarUrl={avatarUrl}
-                  name={name}
+                  name={values.name}
+                  builderLevel={values.builderLevel}
+                  uniqueId={uniqueId}
                 />
               ) : (
                 <BuilderIdCard
                   avatarUrl={avatarUrl}
-                  name={name}
-                  role={role}
-                  builderTitle={builderTitle}
+                  name={values.name}
+                  role={values.role}
+                  college={values.college}
+                  github={values.github}
+                  xHandle={values.xHandle}
+                  builderTitle={values.builderTitle}
+                  builderLevel={values.builderLevel}
+                  badge={values.badge}
+                  badgeEmoji={values.badgeEmoji}
+                  uniqueId={uniqueId}
+                  qrCodeUrl={qrCodeUrl}
                 />
               )}
             </div>
@@ -102,7 +104,7 @@ export function LivePreview({
             className="pointer-events-none absolute inset-0 rounded-3xl"
             style={{
               boxShadow:
-                "inset 0 1px 0 oklch(0.985 0.012 90 / 0.6), inset 0 -1px 0 oklch(0.42 0.11 165 / 0.18)",
+                "inset 0 1px 0 oklch(0.985 0.014 95 / 0.6), inset 0 -1px 0 oklch(0.28 0.07 165 / 0.18)",
             }}
           />
         </motion.div>
@@ -135,13 +137,13 @@ export function LivePreview({
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="flex flex-col items-center gap-3 rounded-2xl bg-card/95 px-7 py-6 shadow-tropical-lg"
+                className="flex flex-col items-center gap-3 rounded-2xl bg-card/95 px-7 py-6 shadow-luxe-lg"
               >
                 <div className="relative">
                   <div className="absolute inset-0 animate-ping rounded-full bg-gold/40" />
                   <Loader2 className="relative h-8 w-8 animate-spin text-emerald" />
                 </div>
-                <p className="font-serif text-lg text-emerald-deep">
+                <p className="font-display text-lg text-emerald-deep">
                   Rendering PNG…
                 </p>
                 <p className="text-xs text-muted-foreground">

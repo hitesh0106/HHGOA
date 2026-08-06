@@ -12,8 +12,8 @@ interface SiteNavProps {
 }
 
 /**
- * Sticky glassy top nav. Brand mark + primary CTA only — the page is
- * intentionally lean (just the generator), so there are no section links.
+ * Sticky premium glassy top nav. Brand mark + single primary CTA. No
+ * section links — the page is intentionally lean.
  */
 export function SiteNav({ onStart, className }: SiteNavProps) {
   const [scrolled, setScrolled] = React.useState(false);
@@ -34,7 +34,7 @@ export function SiteNav({ onStart, className }: SiteNavProps) {
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-all duration-300",
         scrolled
-          ? "glass-tropical border-b border-emerald/10 shadow-tropical"
+          ? "glass-luxe border-b border-emerald/10 shadow-luxe"
           : "bg-transparent",
         className
       )}
@@ -44,18 +44,18 @@ export function SiteNav({ onStart, className }: SiteNavProps) {
         <a
           href="#hero"
           className="group flex items-center gap-2 rounded-full px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
-          aria-label="HH Goa 2026 Builder Generator — home"
+          aria-label="HH Goa 2026 Builder ID Generator — home"
         >
-          <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald to-emerald-deep text-ivory shadow-tropical transition-transform duration-300 group-hover:-rotate-6">
+          <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald to-emerald-deep text-ivory shadow-luxe transition-transform duration-300 group-hover:-rotate-6">
             <Sparkle className="h-4 w-4" />
             <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-gold shadow-gold-glow" />
           </span>
           <span className="flex flex-col leading-none">
-            <span className="font-serif text-base tracking-wide text-emerald-deep">
+            <span className="font-display text-base tracking-wide text-emerald-deep">
               HH Goa <span className="text-gradient-gold">2026</span>
             </span>
-            <span className="text-[9px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-              Builder Studio
+            <span className="font-mono text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
+              Builder ID Studio
             </span>
           </span>
         </a>
@@ -85,9 +85,9 @@ export function SiteNav({ onStart, className }: SiteNavProps) {
             onClick={onStart}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            className="ml-1 inline-flex h-9 items-center gap-1.5 rounded-full bg-gradient-to-br from-emerald to-emerald-deep px-4 text-sm font-semibold text-ivory shadow-tropical focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
+            className="group relative ml-1 inline-flex h-9 items-center gap-1.5 overflow-hidden rounded-full bg-gradient-to-br from-emerald to-emerald-deep px-4 text-sm font-semibold text-ivory shadow-luxe focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
           >
-            <Sparkle className="h-3.5 w-3.5" />
+            <Sparkle className="h-3.5 w-3.5 transition-transform group-hover:rotate-12" />
             Build yours
           </motion.button>
         </div>
@@ -114,7 +114,7 @@ export function SiteNav({ onStart, className }: SiteNavProps) {
             transition={{ duration: 0.25 }}
             className="md:hidden"
           >
-            <div className="glass-tropical border-t border-emerald/10 px-5 py-4">
+            <div className="glass-luxe border-t border-emerald/10 px-5 py-4">
               <nav className="flex flex-col gap-1" aria-label="Mobile">
                 <button
                   type="button"
@@ -122,7 +122,7 @@ export function SiteNav({ onStart, className }: SiteNavProps) {
                     setOpen(false);
                     onStart();
                   }}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-emerald to-emerald-deep px-4 text-sm font-semibold text-ivory shadow-tropical"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-emerald to-emerald-deep px-4 text-sm font-semibold text-ivory shadow-luxe"
                 >
                   <Sparkle className="h-4 w-4" />
                   Build yours

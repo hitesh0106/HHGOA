@@ -4,9 +4,9 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Original tropical SVG decorations. Hand-crafted paths — not copied from
- * any existing brand. Designed to evoke Goa palm leaves + festival warmth
- * using the project's emerald / gold / coral palette.
+ * Original tropical SVG decorations. Hand-crafted paths — designed to evoke
+ * Goa palm leaves + festival warmth using the project's emerald / gold /
+ * coral palette. Refined for premium luxury aesthetic.
  */
 
 interface SvgProps extends React.SVGProps<SVGSVGElement> {
@@ -37,14 +37,12 @@ export const PalmFrond = React.forwardRef<SVGSVGElement, SvgProps>(
             <stop offset="1" stopColor="var(--emerald)" />
           </linearGradient>
         </defs>
-        {/* central rib */}
         <path
           d="M30 170 C 70 130, 110 90, 175 25"
           stroke="url(#palm-grad-2)"
           strokeWidth="4"
           strokeLinecap="round"
         />
-        {/* leaflets */}
         {Array.from({ length: 9 }).map((_, i) => {
           const t = i / 8;
           const baseX = 30 + (175 - 30) * t;
@@ -149,7 +147,7 @@ export const TropicalSun = React.forwardRef<SVGSVGElement, SvgProps>(
           <radialGradient id="sun-grad" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="var(--gold)" stopOpacity="1" />
             <stop offset="55%" stopColor="var(--gold-deep)" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="var(--coral)" stopOpacity="0" />
+            <stop offset="100%" stopColor="var(--rose)" stopOpacity="0" />
           </radialGradient>
           <radialGradient id="sun-core" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#FFF6D7" />
@@ -295,27 +293,10 @@ export const MonsteraLeaf = React.forwardRef<SVGSVGElement, SvgProps>(
           strokeWidth="2"
           opacity="0.4"
         />
-        {/* Notches */}
-        <path
-          d="M80 60 L 110 80 L 80 80 Z"
-          fill="var(--ivory)"
-          opacity="0.92"
-        />
-        <path
-          d="M80 80 L 50 95 L 80 95 Z"
-          fill="var(--ivory)"
-          opacity="0.92"
-        />
-        <path
-          d="M80 95 L 115 115 L 80 115 Z"
-          fill="var(--ivory)"
-          opacity="0.92"
-        />
-        <path
-          d="M80 115 L 45 135 L 80 135 Z"
-          fill="var(--ivory)"
-          opacity="0.92"
-        />
+        <path d="M80 60 L 110 80 L 80 80 Z" fill="var(--ivory)" opacity="0.92" />
+        <path d="M80 80 L 50 95 L 80 95 Z" fill="var(--ivory)" opacity="0.92" />
+        <path d="M80 95 L 115 115 L 80 115 Z" fill="var(--ivory)" opacity="0.92" />
+        <path d="M80 115 L 45 135 L 80 135 Z" fill="var(--ivory)" opacity="0.92" />
       </svg>
     );
   }

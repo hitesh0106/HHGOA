@@ -1,34 +1,50 @@
 "use client";
 
 /**
- * Local draft persistence. We only persist the minimum: name, role, last
- * Builder Title, mode and a small thumbnail of the last photo. All on-device,
- * no network, no analytics. Cleared instantly with clearDraft().
+ * Local draft persistence. Persists the minimum form fields plus a tiny
+ * thumbnail of the last photo so a refresh picks up where the user left off.
+ * All on-device — no network calls.
  */
 
 import { APP_CONFIG } from "@/constants";
-import type { GeneratorMode, PersistedDraft } from "@/types";
+import type { BuilderLevel, GeneratorMode, PersistedDraft } from "@/types";
 
 const EMPTY_DRAFT: PersistedDraft = {
   name: "",
   role: "",
+  college: "",
+  github: "",
+  xHandle: "",
   builderTitle: "",
+  builderLevel: "gold",
+  badge: "",
   mode: "builder-id",
   updatedAt: 0,
 };
+
+function isBuilderLevel(v: unknown): v is BuilderLevel {
+  return v === "bronze" || v === "silver" || v === "gold" || v === "platinum";
+}
 
 function safeRead(): PersistedDraft | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(APP_CONFIG.storageKey);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as PersistedDraft;
+    const parsed = JSON.parse(raw) as Partial<PersistedDraft>;
     if (!parsed || typeof parsed !== "object") return null;
     return {
       name: typeof parsed.name === "string" ? parsed.name : "",
       role: typeof parsed.role === "string" ? parsed.role : "",
+      college: typeof parsed.college === "string" ? parsed.college : "",
+      github: typeof parsed.github === "string" ? parsed.github : "",
+      xHandle: typeof parsed.xHandle === "string" ? parsed.xHandle : "",
       builderTitle:
         typeof parsed.builderTitle === "string" ? parsed.builderTitle : "",
+      builderLevel: isBuilderLevel(parsed.builderLevel)
+        ? parsed.builderLevel
+        : "gold",
+      badge: typeof parsed.badge === "string" ? parsed.badge : "",
       mode:
         parsed.mode === "profile-frame" || parsed.mode === "builder-id"
           ? (parsed.mode as GeneratorMode)
@@ -62,7 +78,6 @@ export function writeDraft(patch: Partial<PersistedDraft>): PersistedDraft {
     ...patch,
     updatedAt: Date.now(),
   };
-  // Don't persist the photo thumb if it's empty string.
   if (next.photoThumb === "") next.photoThumb = undefined;
   safeWrite(next);
   return next;
@@ -72,6 +87,8 @@ export function clearDraft(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(APP_CONFIG.storageKey);
+    // Also clear any older draft keys from previous versions.
+    window.localStorage.removeItem("hh-goa-2026:draft:v1");
   } catch {
     // ignore
   }

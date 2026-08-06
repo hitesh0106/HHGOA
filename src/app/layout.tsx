@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Fraunces } from "next/font/google";
+import { Inter, Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { AppToaster } from "@/components/app-toaster";
 
@@ -9,36 +9,43 @@ const inter = Inter({
   display: "swap",
 });
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
   display: "swap",
-  axes: ["opsz", "SOFT", "WONK"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const siteUrl = "https://hh-goa-builder.vercel.app";
-const siteName = "HH Goa 2026 Builder Identity Generator";
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-plex-mono",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600"],
+});
+
+const siteUrl = "https://hh-goa-2026-builder-id.vercel.app";
+const siteName = "HH Goa 2026 Builder ID Generator";
 const siteDescription =
-  "Upload your photo and create your premium HH Goa 2026 Builder Identity card or circular Profile Frame in seconds. Tropical, original, mobile-first, instant download and one-click share to X.";
+  "Build your HH Goa 2026 Builder ID in seconds. Upload a photo, pick your stack, get a random Builder Title, and generate a premium event badge. Instant PNG download + one-click share to X with #FrameInGoa.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "HH Goa 2026 — Builder Identity Generator",
-    template: "%s · HH Goa 2026 Builder Generator",
+    default: "HH Goa 2026 · Builder ID Generator",
+    template: "%s · HH Goa 2026 Builder ID",
   },
   description: siteDescription,
   applicationName: siteName,
   keywords: [
     "HH Goa",
     "HH Goa 2026",
-    "Builder Identity",
     "Builder ID",
+    "Builder Identity",
+    "Builder ID Generator",
+    "Event Badge",
     "Profile Frame",
-    "Builder Card Generator",
+    "Builder Card",
     "Hackathon",
-    "Builder Generator",
-    "Tropical Frame",
     "Goa 2026",
   ],
   authors: [{ name: "HH Goa Builder Studio" }],
@@ -53,7 +60,7 @@ export const metadata: Metadata = {
     apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
   },
   openGraph: {
-    title: "HH Goa 2026 — Builder Identity Generator",
+    title: "HH Goa 2026 · Builder ID Generator",
     description: siteDescription,
     url: siteUrl,
     siteName,
@@ -62,7 +69,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "HH Goa 2026 Builder Identity Generator — tropical emerald, gold and coral aesthetic",
+        alt: "HH Goa 2026 Builder ID Generator — luxury event badge for builders",
       },
     ],
     locale: "en_US",
@@ -70,7 +77,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "HH Goa 2026 — Builder Identity Generator",
+    title: "HH Goa 2026 · Builder ID Generator",
     description: siteDescription,
     images: ["/og-image.png"],
     creator: "@hhgoa",
@@ -91,8 +98,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FFF8E7" },
-    { media: "(prefers-color-scheme: dark)", color: "#0F3A2C" },
+    { media: "(prefers-color-scheme: light)", color: "#FAF4E5" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B3A2C" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -103,7 +110,7 @@ export const viewport: Viewport = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "HH Goa 2026 Builder Identity Generator",
+  name: "HH Goa 2026 Builder ID Generator",
   description: siteDescription,
   applicationCategory: "DesignApplication",
   operatingSystem: "Web",
@@ -118,12 +125,13 @@ const jsonLd = {
     name: "HH Goa Builder Studio",
   },
   featureList: [
-    "Upload photo (JPG, PNG, WEBP, HEIC)",
-    "Generate circular Profile Frame",
-    "Generate Builder ID card",
-    "100+ random Builder Titles",
-    "1080×1080 PNG export",
-    "One-click share to X",
+    "Upload photo (JPG, PNG, WEBP, HEIC) — paste also supported",
+    "Auto Builder Title from 100+ originals",
+    "Random Fun Badges (Cloud Wizard, Bug Hunter, Prompt Engineer…)",
+    "Builder Levels (Bronze, Silver, Gold, Platinum)",
+    "QR Code + Unique ID Number on every card",
+    "1080×1080 retina PNG export (2×)",
+    "One-click Share to X with #FrameInGoa",
   ],
 };
 
@@ -141,7 +149,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${fraunces.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${inter.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable} font-sans antialiased bg-background text-foreground`}
       >
         {children}
         <AppToaster />

@@ -1,7 +1,7 @@
 {
-  "name": "HH Goa 2026 Builder Identity Generator",
-  "short_name": "HH Goa Builder",
-  "description": "Upload your photo and create your premium HH Goa 2026 Builder Identity card or circular Profile Frame in seconds.",
+  "name": "HH Goa 2026 Builder ID Generator",
+  "short_name": "HH Goa Builder ID",
+  "description": "Build your HH Goa 2026 Builder ID in seconds. Upload a photo, pick your stack, get a random Builder Title, and generate a premium event badge with QR code and unique ID. Instant PNG download + one-click share to X with #FrameInGoa.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

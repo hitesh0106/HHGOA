@@ -3,14 +3,21 @@
 import { useCallback, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { APP_CONFIG } from "@/constants";
-import { sleep, triggerDownload } from "@/lib/utils";
+import { sleep } from "@/lib/utils";
 import type { GenerateResult } from "@/types";
 
 export interface UseImageGeneratorOptions {
-  /** Pixel filter scale — pass >1 to render at retina resolution. */
+  /** Default pixel ratio. */
   pixelRatio?: number;
-  /** Optional filename override. */
+  /** Default filename. */
   fileName?: string;
+}
+
+export interface DownloadOptions {
+  /** When true, exports with a transparent background. */
+  transparent?: boolean;
+  /** Multiplier applied to the base pixel ratio (1 = 1×, 2 = 2×). */
+  scale?: number;
 }
 
 export interface UseImageGeneratorReturn {
@@ -18,15 +25,21 @@ export interface UseImageGeneratorReturn {
   hasGenerated: boolean;
   lastResult: GenerateResult | null;
   error: string | null;
-  generate: (node: HTMLElement | null) => Promise<GenerateResult | null>;
-  download: (result?: GenerateResult | null) => Promise<void>;
+  generate: (
+    node: HTMLElement | null,
+    options?: DownloadOptions
+  ) => Promise<GenerateResult | null>;
+  download: (
+    result?: GenerateResult | null,
+    options?: DownloadOptions
+  ) => Promise<void>;
   reset: () => void;
 }
 
 /**
- * Wraps html-to-image for premium PNG export. We deliberately render at
- * 2× pixel ratio to guarantee retina-quality 1080×1080 output without
- * raster artifacts, then return both the data URL and a download helper.
+ * Premium PNG export via html-to-image. Supports 2× pixel ratio for retina
+ * output and transparent-background export. Two-pass rendering for crisp
+ * fonts and image settle.
  */
 export function useImageGenerator(
   options: UseImageGeneratorOptions = {}
@@ -39,31 +52,36 @@ export function useImageGenerator(
   const generatingRef = useRef(false);
 
   const generate = useCallback(
-    async (node: HTMLElement | null): Promise<GenerateResult | null> => {
+    async (
+      node: HTMLElement | null,
+      genOptions: DownloadOptions = {}
+    ): Promise<GenerateResult | null> => {
       if (!node) return null;
       if (generatingRef.current) return null;
       generatingRef.current = true;
       setIsGenerating(true);
       setError(null);
       const startedAt = performance.now();
+      const ratio = (genOptions.scale ?? 1) * pixelRatio;
+      const bgColor = genOptions.transparent
+        ? undefined
+        : undefined; // Let the card's own background show through.
 
       try {
-        // Two-pass approach: first pass warms up fonts/images, second pass
-        // guarantees all web fonts have settled for crisp output.
+        // Warm-up pass — primes fonts and images.
         await toPng(node, {
-          pixelRatio,
+          pixelRatio: ratio,
           cacheBust: true,
-          backgroundColor: undefined,
+          backgroundColor: bgColor,
           skipFonts: false,
         }).catch(() => null);
 
-        // Small breath for layout/animation settle.
         await sleep(60);
 
         const dataUrl = await toPng(node, {
-          pixelRatio,
+          pixelRatio: ratio,
           cacheBust: true,
-          backgroundColor: undefined,
+          backgroundColor: bgColor,
           skipFonts: false,
           quality: 1,
         });
@@ -72,8 +90,8 @@ export function useImageGenerator(
         const result: GenerateResult = {
           dataUrl,
           fileName,
-          width: APP_CONFIG.outputSize,
-          height: APP_CONFIG.outputSize,
+          width: APP_CONFIG.outputSize * (genOptions.scale ?? 1),
+          height: APP_CONFIG.outputSize * (genOptions.scale ?? 1),
           durationMs,
         };
         setLastResult(result);
@@ -96,11 +114,20 @@ export function useImageGenerator(
   );
 
   const download = useCallback(
-    async (result?: GenerateResult | null) => {
+    async (
+      result?: GenerateResult | null,
+      _options?: DownloadOptions
+    ) => {
       const target = result ?? lastResult;
       if (!target) return;
       try {
-        triggerDownload(target.dataUrl, target.fileName);
+        const link = document.createElement("a");
+        link.href = target.dataUrl;
+        link.download = target.fileName;
+        link.rel = "noopener";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       } catch (err) {
         console.error("[useImageGenerator] download failed", err);
         setError(

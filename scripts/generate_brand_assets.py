@@ -40,15 +40,19 @@ def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
 def _emerald_palette():
     """Return palette hexes."""
     return {
-        "emerald": (15, 81, 50),       # #0F5132
-        "emerald_deep": (6, 48, 30),   # #06301E
-        "emerald_soft": (46, 139, 87), # #2E8B57
-        "gold": (244, 180, 0),         # #F4B400
-        "gold_deep": (224, 127, 0),    # #E07F00
-        "gold_soft": (255, 231, 160),  # #FFE7A0
-        "coral": (255, 107, 107),      # #FF6B6B
-        "ivory": (255, 248, 231),      # #FFF8E7
-        "beige": (245, 230, 211),      # #F5E6D3
+        "emerald": (26, 107, 71),       # #1A6B47
+        "emerald_deep": (6, 48, 30),    # #06301E
+        "emerald_soft": (46, 139, 87),  # #2E8B57
+        "forest": (15, 81, 50),         # #0F5132
+        "gold": (245, 192, 74),         # #F5C04A
+        "gold_deep": (201, 136, 28),    # #C9881C
+        "gold_soft": (255, 231, 160),   # #FFE7A0
+        "rose": (255, 107, 107),        # #FF6B6B
+        "rose_deep": (220, 60, 60),     # #DC3C3C
+        "rose_soft": (255, 200, 200),   # #FFC8C8
+        "ivory": (250, 244, 229),       # #FAF4E5
+        "cream": (245, 230, 211),       # #F5E6D3
+        "sand": (230, 215, 195),        # #E6D7C3
     }
 
 
@@ -129,7 +133,7 @@ def draw_og_image() -> Image.Image:
     for cx, cy, r, color, alpha in [
         (120, 80, 700, palette["emerald_soft"], 60),
         (1080, 60, 600, palette["gold"], 45),
-        (960, 580, 700, palette["coral"], 40),
+        (960, 580, 700, palette["rose"], 40),
         (180, 540, 600, palette["emerald"], 35),
     ]:
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
@@ -182,13 +186,13 @@ def draw_og_image() -> Image.Image:
     draw.text((90, 180), "HH Goa 2026", font=title_font, fill=palette["emerald_deep"])
     # Subtitle line
     sub_font_lg = _font(54, bold=True)
-    draw.text((92, 300), "Builder Identity Generator", font=sub_font_lg, fill=palette["emerald"])
+    draw.text((92, 300), "Builder ID Generator", font=sub_font_lg, fill=palette["emerald"])
     # Description
     desc_font = _font(24, bold=False)
     desc_lines = [
-        "Upload a photo. Choose Profile Frame or Builder ID.",
-        "100+ original Builder Titles. 1080×1080 retina PNG.",
-        "No login. No upload. Local only.",
+        "Upload a photo. Get a random Builder Title + Fun Badge.",
+        "QR code + unique ID on every card. 1080×1080 retina PNG.",
+        "No login. No upload. Local only. Share to X with #FrameInGoa.",
     ]
     for i, line in enumerate(desc_lines):
         draw.text((92, 390 + i * 36), line, font=desc_font, fill=palette["emerald_deep"] + (200,))
