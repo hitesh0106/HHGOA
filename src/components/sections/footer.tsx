@@ -80,26 +80,10 @@ export function Footer({ onReset, className }: FooterProps) {
                 </li>
                 <li>
                   <a
-                    href="#features"
+                    href="#studio"
                     className="transition-colors hover:text-gold"
                   >
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#examples"
-                    className="transition-colors hover:text-gold"
-                  >
-                    Examples
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#faq"
-                    className="transition-colors hover:text-gold"
-                  >
-                    FAQ
+                    Open Studio
                   </a>
                 </li>
               </ul>

@@ -9,14 +9,14 @@ import { MOTION } from "@/constants";
 
 interface HeroProps {
   onStart: () => void;
-  onSeeExamples: () => void;
 }
 
 /**
- * Hero section: large serif heading, subtitle, primary CTA, decorative
- * floating palms. Designed mobile-first.
+ * Hero section: large serif heading, subtitle, single primary CTA, decorative
+ * floating palms. Designed mobile-first. Drops straight into the studio —
+ * no marketing sections, no extra CTAs.
  */
-export function Hero({ onStart, onSeeExamples }: HeroProps) {
+export function Hero({ onStart }: HeroProps) {
   return (
     <section
       id="hero"
@@ -67,12 +67,12 @@ export function Hero({ onStart, onSeeExamples }: HeroProps) {
           styled with an original tropical palette.
         </motion.p>
 
-        {/* CTAs */}
+        {/* CTA — single, focused */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: MOTION.ease, delay: 0.28 }}
-          className="mt-9 flex flex-col items-center gap-3 sm:flex-row"
+          className="mt-9"
         >
           <motion.button
             type="button"
@@ -93,17 +93,6 @@ export function Hero({ onStart, onSeeExamples }: HeroProps) {
             <Sparkles className="relative h-5 w-5 transition-transform group-hover:rotate-12" />
             <span className="relative">Upload Photo & Build</span>
             <ArrowRight className="relative h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </motion.button>
-
-          <motion.button
-            type="button"
-            onClick={onSeeExamples}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            transition={MOTION.spring}
-            className="inline-flex h-14 items-center gap-2 rounded-full border border-emerald/20 bg-card/70 px-7 text-base font-medium text-emerald-deep backdrop-blur transition-colors hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
-          >
-            See examples
           </motion.button>
         </motion.div>
 

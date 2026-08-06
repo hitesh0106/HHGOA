@@ -11,14 +11,9 @@ interface SiteNavProps {
   className?: string;
 }
 
-const NAV_LINKS = [
-  { href: "#features", label: "Features" },
-  { href: "#examples", label: "Examples" },
-  { href: "#faq", label: "FAQ" },
-];
-
 /**
- * Sticky glassy top nav. Collapses to a sheet on mobile.
+ * Sticky glassy top nav. Brand mark + primary CTA only — the page is
+ * intentionally lean (just the generator), so there are no section links.
  */
 export function SiteNav({ onStart, className }: SiteNavProps) {
   const [scrolled, setScrolled] = React.useState(false);
@@ -64,22 +59,6 @@ export function SiteNav({ onStart, className }: SiteNavProps) {
             </span>
           </span>
         </a>
-
-        {/* Desktop nav */}
-        <nav
-          className="hidden items-center gap-1 md:flex"
-          aria-label="Primary"
-        >
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="rounded-full px-3 py-2 text-sm font-medium text-emerald-deep/80 transition-colors hover:bg-emerald/8 hover:text-emerald-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
 
         {/* Desktop actions */}
         <div className="hidden items-center gap-2 md:flex">
@@ -137,23 +116,13 @@ export function SiteNav({ onStart, className }: SiteNavProps) {
           >
             <div className="glass-tropical border-t border-emerald/10 px-5 py-4">
               <nav className="flex flex-col gap-1" aria-label="Mobile">
-                {NAV_LINKS.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setOpen(false)}
-                    className="rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-deep transition-colors hover:bg-emerald/8"
-                  >
-                    {link.label}
-                  </a>
-                ))}
                 <button
                   type="button"
                   onClick={() => {
                     setOpen(false);
                     onStart();
                   }}
-                  className="mt-2 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-emerald to-emerald-deep px-4 text-sm font-semibold text-ivory shadow-tropical"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-emerald to-emerald-deep px-4 text-sm font-semibold text-ivory shadow-tropical"
                 >
                   <Sparkle className="h-4 w-4" />
                   Build yours

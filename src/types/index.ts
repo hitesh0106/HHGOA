@@ -47,31 +47,6 @@ export interface PersistedDraft {
   updatedAt: number;
 }
 
-/** FAQ entry. */
-export interface FaqItem {
-  q: string;
-  a: string;
-}
-
-/** Feature card used on the hero. */
-export interface FeatureItem {
-  icon: string;
-  title: string;
-  description: string;
-}
-
-/** Example showcase entry. */
-export interface ExampleItem {
-  id: string;
-  name: string;
-  role: string;
-  builderTitle: string;
-  /** Initials rendered inside the example avatar. */
-  initials: string;
-  /** Tailwind gradient class for the example avatar background. */
-  gradient: string;
-}
-
 /** Result returned by the image generator. */
 export interface GenerateResult {
   /** PNG data URL. */
