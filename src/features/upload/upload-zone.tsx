@@ -37,14 +37,6 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
     onError: (msg) => toast.error(msg),
   });
 
-  // Toast on HEIC conversion success — handled in the hook via `converted`
-  // flag, but we surface a friendlier message here.
-  React.useEffect(() => {
-    if (photo && photo.mimeType === "image/jpeg" && /\.heic$/i.test(photo.fileName) === false) {
-      // Skip — not converted
-    }
-  }, [photo]);
-
   const onDrop = React.useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
