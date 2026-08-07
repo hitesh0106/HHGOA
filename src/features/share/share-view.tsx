@@ -16,6 +16,7 @@ import { useImageGenerator } from "@/hooks/use-image-generator";
 import { APP_CONFIG, buildTwitterShareUrl, MOTION } from "@/constants";
 import { cn } from "@/lib/utils";
 import { FloatingDecorations } from "@/components/decor/floating-decorations";
+import { getAvatarForShare } from "@/lib/share";
 import type { ShareData } from "@/lib/share";
 
 interface ShareViewProps {
@@ -39,6 +40,7 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [scale, setScale] = React.useState(0.46);
   const [copied, setCopied] = React.useState(false);
+  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
   const {
     isGenerating,
     generate,
@@ -48,6 +50,18 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
   const name = data.n || "Builder";
   const role = data.r || "Builder";
   const builderTitle = data.t || "Builder of Tomorrow";
+
+  // Retrieve the stored avatar from localStorage (if the share link was
+  // opened on the same browser where it was generated).
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get("share");
+    if (encoded) {
+      const stored = getAvatarForShare(encoded);
+      if (stored) setAvatarUrl(stored);
+    }
+  }, []);
 
   // Measure container and compute scale for the visible card.
   React.useEffect(() => {
@@ -133,7 +147,7 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
                 className="absolute left-0 top-0"
               >
                 <BuilderIdCard
-                  avatarUrl={null}
+                  avatarUrl={avatarUrl}
                   name={name}
                   role={role}
                   builderTitle={builderTitle}
@@ -278,7 +292,7 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
       >
         <div ref={renderRef} className="relative">
           <BuilderIdCard
-            avatarUrl={null}
+            avatarUrl={avatarUrl}
             name={name}
             role={role}
             builderTitle={builderTitle}

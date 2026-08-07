@@ -454,6 +454,7 @@ export function Studio({ className }: StudioProps) {
                   onGenerate={handleGenerate}
                   onDownload={handleDownload}
                   shareData={{ name, role, builderTitle }}
+                  avatarUrl={avatarUrl}
                 />
               </div>
 

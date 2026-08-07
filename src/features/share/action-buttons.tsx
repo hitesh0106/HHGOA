@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { APP_CONFIG, buildTwitterShareUrl } from "@/constants";
-import { buildShareUrl } from "@/lib/share";
+import { buildShareUrl, encodeShareData, storeAvatarForShare } from "@/lib/share";
 import { cn } from "@/lib/utils";
 import type { GenerateResult } from "@/types";
 
@@ -27,6 +27,9 @@ interface ActionButtonsProps {
   onDownload: () => void;
   /** Builder data for the Copy Link feature. */
   shareData?: { name: string; role: string; builderTitle: string };
+  /** Cropped avatar data URL — stored in localStorage so the share link
+   * shows the photo when opened in another tab on the same browser. */
+  avatarUrl?: string | null;
   className?: string;
 }
 
@@ -40,6 +43,7 @@ export function ActionButtons({
   onGenerate,
   onDownload,
   shareData,
+  avatarUrl,
   className,
 }: ActionButtonsProps) {
   const [copied, setCopied] = React.useState(false);
@@ -57,6 +61,16 @@ export function ActionButtons({
       toast.error("Fill in your name and role first.");
       return;
     }
+    const encoded = encodeShareData({
+      n: shareData.name,
+      r: shareData.role,
+      t: shareData.builderTitle,
+    });
+    // Store the avatar in localStorage so the share link shows the photo
+    // when opened in another tab on the same browser.
+    if (avatarUrl) {
+      storeAvatarForShare(encoded, avatarUrl);
+    }
     const url = buildShareUrl({
       n: shareData.name,
       r: shareData.role,
@@ -66,15 +80,14 @@ export function ActionButtons({
       await navigator.clipboard.writeText(url);
       setCopied(true);
       toast.success("Share link copied!", {
-        description: "Paste it anywhere to show off your Builder ID.",
+        description: "Open it in a new tab — your photo will appear.",
       });
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      // Fallback: open the URL in a new window so the user can copy manually.
       window.open(url, "_blank", "noopener,noreferrer");
       toast.info("Opened share link in a new tab — copy the URL to share.");
     }
-  }, [shareData]);
+  }, [shareData, avatarUrl]);
 
   return (
     <div className={cn("flex flex-col gap-3 sm:flex-row sm:flex-wrap", className)}>
