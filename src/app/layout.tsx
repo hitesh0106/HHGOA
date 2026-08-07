@@ -148,6 +148,7 @@ export default function RootLayout({
         />
       </head>
       <body
+        suppressHydrationWarning
         className={`${inter.variable} ${fraunces.variable} ${ibmPlexMono.variable} font-sans antialiased bg-background text-foreground`}
       >
         {children}
