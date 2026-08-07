@@ -3,11 +3,17 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Download, Twitter, Link2, Check, Sparkles, ArrowLeft } from "lucide-react";
+import {
+  Download,
+  Twitter,
+  Link2,
+  Check,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BuilderIdCard } from "@/components/frames/builder-id-card";
 import { useImageGenerator } from "@/hooks/use-image-generator";
-import { APP_CONFIG, buildTwitterShareUrl } from "@/constants";
+import { APP_CONFIG, buildTwitterShareUrl, MOTION } from "@/constants";
 import { cn } from "@/lib/utils";
 import { FloatingDecorations } from "@/components/decor/floating-decorations";
 import type { ShareData } from "@/lib/share";
@@ -19,17 +25,14 @@ interface ShareViewProps {
 }
 
 /**
- * Premium public Builder ID showcase page.
+ * Premium public Builder ID showcase page — 2-column layout.
  *
- * When someone opens a `?share=...` link, they see this page — a clean
- * digital profile with:
- *   · Large Builder ID card (initials avatar since photo can't be in URL)
- *   · Builder Name + Stack + Title
- *   · HH Goa branding + event dates
- *   · Download PNG + Share/Repost to X + Copy Link buttons
- *   · "Create Your Own Builder ID" CTA
+ * LEFT (60%): Large Builder ID card with floating shadow.
+ * RIGHT (40%): Badge → Name → Stack → Title → Description → Event info →
+ *              Actions → Divider → CTA.
  *
- * No editing controls. No form fields. No upload UI. Just a showcase.
+ * NO top nav, NO footer, NO back button. The focus stays on the Builder ID.
+ * Mobile-first: stacks vertically on small screens.
  */
 export function ShareView({ data, onBackToGenerator, className }: ShareViewProps) {
   const renderRef = React.useRef<HTMLDivElement>(null);
@@ -46,7 +49,7 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
   const role = data.r || "Builder";
   const builderTitle = data.t || "Builder of Tomorrow";
 
-  // Measure container and compute scale for the visible preview.
+  // Measure container and compute scale for the visible card.
   React.useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -64,7 +67,7 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
   React.useEffect(() => {
     const t = setTimeout(() => {
       void generate(renderRef.current);
-    }, 300);
+    }, 400);
     return () => clearTimeout(t);
   }, [generate]);
 
@@ -98,166 +101,169 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
   }, []);
 
   return (
-    <div className={cn("relative isolate min-h-screen overflow-hidden bg-mesh-tropical", className)}>
+    <div
+      className={cn(
+        "relative isolate min-h-screen overflow-hidden bg-mesh-tropical",
+        className
+      )}
+    >
       <FloatingDecorations />
 
-      <div className="relative mx-auto max-w-3xl px-5 py-20 sm:px-8 sm:py-24">
-        {/* Back link */}
-        <motion.button
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4 }}
-          onClick={onBackToGenerator}
-          className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-emerald-deep/70 transition-colors hover:text-emerald-deep"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Generator
-        </motion.button>
-
-        {/* Card + details wrapper */}
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto w-full max-w-[480px] sm:max-w-[540px]"
-        >
-          {/* Scaled preview of the Builder ID card */}
-          <div
-            ref={containerRef}
-            className="relative aspect-square w-full overflow-hidden rounded-3xl border border-emerald/15 shadow-tropical-lg"
+      <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center px-5 py-12 sm:px-8 sm:py-16 lg:py-20">
+        <div className="grid w-full grid-cols-1 items-center gap-10 lg:grid-cols-[60%_40%] lg:gap-16">
+          {/* ============ LEFT COLUMN (60%) — Large Builder ID card ============ */}
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.7, ease: MOTION.ease }}
+            className="mx-auto w-full max-w-[560px]"
           >
             <div
-              style={{
-                width: 1080,
-                height: 1080,
-                transform: `scale(${scale})`,
-                transformOrigin: "top left",
-              }}
-              className="absolute left-0 top-0"
+              ref={containerRef}
+              className="relative aspect-square w-full overflow-hidden rounded-[2rem] shadow-tropical-lg"
+              style={{ boxShadow: "0 30px 80px rgba(15, 81, 50, 0.25), 0 12px 32px rgba(15, 81, 50, 0.15)" }}
             >
-              <BuilderIdCard
-                avatarUrl={null}
-                name={name}
-                role={role}
-                builderTitle={builderTitle}
-              />
+              <div
+                style={{
+                  width: 1080,
+                  height: 1080,
+                  transform: `scale(${scale})`,
+                  transformOrigin: "top left",
+                }}
+                className="absolute left-0 top-0"
+              >
+                <BuilderIdCard
+                  avatarUrl={null}
+                  name={name}
+                  role={role}
+                  builderTitle={builderTitle}
+                />
+              </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Profile details below card */}
+          {/* ============ RIGHT COLUMN (40%) — Profile details ============ */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="mt-8 text-center"
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: MOTION.ease, delay: 0.15 }}
+            className="flex flex-col gap-6"
           >
+            {/* 1. Small badge */}
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald/20 bg-card/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-deep backdrop-blur">
+              <Sparkles className="h-3 w-3 text-gold" />
+              <span>BUILDER ID CARD</span>
+              <span className="text-emerald/40">•</span>
+              <span className="text-gold">#{APP_CONFIG.hashtag}</span>
+            </div>
+
+            {/* 2. Large Builder Name */}
             <h1
-              className="font-serif text-3xl tracking-tight text-emerald-deep sm:text-4xl"
+              className="font-serif text-4xl leading-[1.05] tracking-tight text-emerald-deep sm:text-5xl"
               style={{ fontWeight: 600 }}
             >
               {name}
             </h1>
-            <p className="mt-2 text-sm uppercase tracking-[0.16em] text-muted-foreground">
+
+            {/* 3. Stack / Role */}
+            <p className="text-sm font-medium uppercase tracking-[0.16em] text-muted-foreground">
               {role}
             </p>
-            <p className="mt-4 font-serif text-xl text-gradient-tropical sm:text-2xl">
+
+            {/* 4. Builder Title */}
+            <p className="font-serif text-2xl text-gradient-tropical sm:text-3xl">
               {builderTitle}
             </p>
 
-            {/* HH Goa branding + event dates */}
-            <div className="mt-6 flex items-center justify-center gap-3 text-xs uppercase tracking-[0.2em] text-emerald-deep/60">
-              <span className="inline-flex items-center gap-1.5">
-                <Sparkles className="h-3 w-3 text-gold" />
-                HH Goa 2026
+            {/* 5. Short description */}
+            <p className="text-base leading-relaxed text-muted-foreground">
+              {name} just built their HH Goa 2026 Builder ID.
+            </p>
+
+            {/* 6. Event information */}
+            <div className="flex items-center gap-2 text-sm text-emerald-deep/70">
+              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-gold" />
+              <span className="font-medium">
+                See you in Goa • 28–31 Oct 2026
               </span>
-              <span className="h-3 w-px bg-emerald/20" />
-              <span>Goa · Builders Edition</span>
+            </div>
+
+            {/* 7. Action buttons — horizontal row */}
+            <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              {/* Share to X — primary */}
+              <Button
+                type="button"
+                onClick={handleShare}
+                className="h-12 flex-1 rounded-2xl bg-gradient-to-br from-emerald to-emerald-deep px-6 text-sm font-semibold text-ivory shadow-tropical-lg transition-all hover:shadow-tropical-lg sm:flex-none"
+              >
+                <Twitter className="mr-2 h-4 w-4" />
+                Share to X
+              </Button>
+              {/* Download PNG — secondary */}
+              <Button
+                type="button"
+                onClick={handleDownload}
+                disabled={isGenerating}
+                className="h-12 flex-1 rounded-2xl bg-card px-6 text-sm font-semibold text-emerald-deep shadow-tropical transition-all hover:bg-emerald/5 disabled:opacity-60 sm:flex-none"
+              >
+                {isGenerating ? (
+                  <>
+                    <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-emerald/30 border-t-emerald" />
+                    Preparing…
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PNG
+                  </>
+                )}
+              </Button>
+              {/* Copy Link — outline */}
+              <Button
+                type="button"
+                onClick={handleCopyLink}
+                variant="outline"
+                className="h-12 flex-1 rounded-2xl border-2 border-emerald/25 bg-transparent px-6 text-sm font-semibold text-emerald-deep transition-all hover:border-emerald/45 hover:bg-emerald/5 sm:flex-none"
+              >
+                {copied ? (
+                  <>
+                    <Check className="mr-2 h-4 w-4 text-emerald" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Link2 className="mr-2 h-4 w-4" />
+                    Copy Link
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* 8. Divider */}
+            <div className="divider-luxe my-2" />
+
+            {/* 9. CTA */}
+            <div>
+              <p className="font-serif text-xl text-emerald-deep">
+                Want your own Builder ID?
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Upload a photo and generate one in seconds.
+              </p>
+              <Button
+                type="button"
+                onClick={onBackToGenerator}
+                className="mt-4 h-11 rounded-full bg-gradient-to-br from-emerald to-emerald-deep px-6 text-sm font-semibold text-ivory shadow-tropical"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                Create Your Own Builder ID
+              </Button>
             </div>
           </motion.div>
-
-          {/* Action buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center"
-          >
-            <Button
-              type="button"
-              onClick={handleDownload}
-              disabled={isGenerating}
-              className="h-12 flex-1 rounded-2xl bg-gradient-to-br from-emerald to-emerald-deep px-6 text-sm font-semibold text-ivory shadow-tropical-lg transition-all hover:shadow-tropical-lg disabled:opacity-60 sm:flex-none"
-            >
-              {isGenerating ? (
-                <>
-                  <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-ivory/30 border-t-ivory" />
-                  Preparing…
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download PNG
-                </>
-              )}
-            </Button>
-            <Button
-              type="button"
-              onClick={handleShare}
-              variant="outline"
-              className="h-12 flex-1 rounded-2xl border-2 border-emerald/25 bg-card px-6 text-sm font-semibold text-emerald-deep transition-all hover:border-emerald/45 hover:bg-emerald/5 sm:flex-none"
-            >
-              <Twitter className="mr-2 h-4 w-4" />
-              Share to X
-            </Button>
-            <Button
-              type="button"
-              onClick={handleCopyLink}
-              variant="outline"
-              className="h-12 flex-1 rounded-2xl border-2 border-emerald/25 bg-card px-6 text-sm font-semibold text-emerald-deep transition-all hover:border-emerald/45 hover:bg-emerald/5 sm:flex-none"
-            >
-              {copied ? (
-                <>
-                  <Check className="mr-2 h-4 w-4 text-emerald" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Link2 className="mr-2 h-4 w-4" />
-                  Copy Link
-                </>
-              )}
-            </Button>
-          </motion.div>
-
-          {/* CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-            className="mt-10 rounded-2xl border border-emerald/15 bg-card/70 p-6 text-center shadow-tropical"
-          >
-            <p className="font-serif text-lg text-emerald-deep">
-              Want your own Builder ID?
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Upload a photo and generate one in seconds.
-            </p>
-            <Button
-              type="button"
-              onClick={onBackToGenerator}
-              className="mt-4 h-11 rounded-full bg-gradient-to-br from-emerald to-emerald-deep px-6 text-sm font-semibold text-ivory shadow-tropical"
-            >
-              <Sparkles className="mr-2 h-4 w-4" />
-              Create Your Own Builder ID
-            </Button>
-          </motion.div>
-        </motion.div>
+        </div>
       </div>
 
-      {/* ============ HIDDEN EXPORT TARGET (clean, no overlays) ============
-          Off-screen full-size 1080×1080 node for pixel-perfect PNG export.
-          Contains ONLY the card artwork — no preview scaling, no shadows,
-          no editor chrome. */}
+      {/* ============ HIDDEN EXPORT TARGET (clean, no overlays) ============ */}
       <div
         aria-hidden="true"
         style={{

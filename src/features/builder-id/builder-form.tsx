@@ -49,8 +49,11 @@ export function BuilderForm({
   onChange,
   className,
 }: BuilderFormProps) {
-  const { title, setTitle, regenerate } = useBuilderTitle(initialTitle);
+  // Track the current role so the title generator can use it.
+  const [currentRole, setCurrentRole] = React.useState(initialRole);
+  const { title, setTitle, regenerate } = useBuilderTitle(initialTitle, currentRole);
   const [spinKey, setSpinKey] = React.useState(0);
+  const lastRoleRef = React.useRef(initialRole);
 
   const form = useForm<z.infer<typeof builderSchema>>({
     resolver: zodResolver(builderSchema),
@@ -60,6 +63,20 @@ export function BuilderForm({
       role: initialRole,
     },
   });
+
+  // Watch the role field — when it changes, auto-regenerate the title with the
+  // new stack context.
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const sub = form.watch((values) => {
+      const newRole = (values.role as string) ?? "";
+      if (newRole !== lastRoleRef.current && newRole.trim().length > 0) {
+        lastRoleRef.current = newRole;
+        setCurrentRole(newRole);
+      }
+    });
+    return () => sub.unsubscribe();
+  }, [form]);
 
   // Keep a ref to the latest title + onChange so the watch subscription
   // doesn't need to re-subscribe on every title change (avoids cascading
@@ -71,7 +88,6 @@ export function BuilderForm({
 
   // Forward changes upward. We subscribe with form.watch once.
   React.useEffect(() => {
-    // eslint-disable-next-line react-hooks/incompatible-library
     const sub = form.watch((values) => {
       onChangeRef.current({
         name: (values.name as string) ?? "",

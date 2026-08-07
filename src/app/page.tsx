@@ -53,15 +53,11 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Share view — premium showcase page
+  // Share view — premium showcase page (no nav, no footer)
   if (shareData) {
     return (
-      <div className="relative flex min-h-screen flex-col bg-background">
-        <SiteNav />
-        <main className="flex-1">
-          <ShareView data={shareData} onBackToGenerator={handleBackToGenerator} />
-        </main>
-        <Footer />
+      <div className="relative min-h-screen bg-background">
+        <ShareView data={shareData} onBackToGenerator={handleBackToGenerator} />
       </div>
     );
   }
