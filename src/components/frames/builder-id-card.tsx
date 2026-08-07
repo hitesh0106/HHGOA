@@ -227,44 +227,59 @@ export const BuilderIdCard = React.forwardRef<
             />
           </div>
 
-          {/* Builder Title */}
+          {/* Name (hero) → Role → Builder Title (normal font) */}
           <div className="text-center" style={{ maxWidth: 880 }}>
-            <p
-              className="font-sans text-[14px] font-semibold uppercase tracking-[0.34em] text-emerald"
-              style={{ marginBottom: 12 }}
-            >
-              Builder Title
-            </p>
+            {/* 1. Username / Name — prominent, premium, ivory on dark bg */}
             <h2
-              className="font-serif text-[64px] leading-[1.05]"
+              className="font-serif text-[56px] leading-[1.05]"
               style={{
                 fontWeight: 700,
-                background:
-                  "linear-gradient(135deg, oklch(0.30 0.08 165) 0%, oklch(0.55 0.13 165) 45%, oklch(0.68 0.16 80) 100%)",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                color: "transparent",
+                letterSpacing: "-0.01em",
+                color: "oklch(0.985 0.014 95)",
               }}
             >
-              {displayTitle}
-            </h2>
-          </div>
-
-          {/* Name + Role */}
-          <div className="text-center">
-            <h3
-              className="font-serif text-[44px] text-emerald-deep"
-              style={{ fontWeight: 600, lineHeight: 1.1 }}
-            >
               {displayName}
-            </h3>
+            </h2>
+
+            {/* 2. Role — uppercase, tracked, gold accent */}
             <p
-              className="font-sans text-[20px] tracking-[0.18em] uppercase text-muted-foreground"
-              style={{ marginTop: 8 }}
+              className="font-sans text-[20px] font-medium uppercase tracking-[0.22em]"
+              style={{
+                marginTop: 10,
+                color: "oklch(0.83 0.16 85)",
+              }}
             >
               {displayRole}
             </p>
+
+            {/* 3. Builder Title — normal font, subtle chip style */}
+            <div
+              className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full px-5 py-2"
+              style={{
+                background: "oklch(0.985 0.014 95 / 0.10)",
+                border: "1px solid oklch(0.83 0.16 85 / 0.30)",
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "oklch(0.83 0.16 85)",
+                  boxShadow: "0 0 8px oklch(0.83 0.16 85 / 0.6)",
+                }}
+              />
+              <span
+                className="font-sans text-[18px] font-medium"
+                style={{
+                  color: "oklch(0.985 0.014 95)",
+                  letterSpacing: "0.02em",
+                }}
+              >
+                {displayTitle}
+              </span>
+            </div>
           </div>
         </div>
 
