@@ -292,120 +292,146 @@ export function Studio({ className }: StudioProps) {
           })}
         </div>
 
-        {/* Main two-column layout */}
-        <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_1.05fr] lg:gap-12">
-          {/* LEFT: controls */}
-          <div className="flex flex-col gap-6">
-            <AnimatePresence mode="wait">
-              {step === "upload" || !photo ? (
-                <motion.div
-                  key="upload-step"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                >
-                  <StepHeader
-                    icon={<Camera className="h-4 w-4" />}
-                    label="Step 1"
-                    title="Upload your photo"
-                    subtitle="Drag & drop, browse, or use your camera. HEIC supported."
-                  />
-                  <UploadZone onPhotoLoaded={handlePhotoLoaded} className="mt-4" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="configure-step"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="flex flex-col gap-6"
-                >
-                  {/* Compact re-upload */}
-                  <div className="flex items-center justify-between gap-3">
+        {/* Main layout — switches to single-column result view after generation */}
+        <div
+          className={cn(
+            "mt-12 grid gap-8 lg:gap-12",
+            hasGenerated
+              ? "mx-auto max-w-xl grid-cols-1"
+              : "grid-cols-1 lg:grid-cols-[1fr_1.05fr]"
+          )}
+        >
+          {/* LEFT: controls — hidden after generation */}
+          {!hasGenerated && (
+            <div className="flex flex-col gap-6">
+              <AnimatePresence mode="wait">
+                {step === "upload" || !photo ? (
+                  <motion.div
+                    key="upload-step"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                  >
                     <StepHeader
-                      icon={<ImageIcon className="h-4 w-4" />}
-                      label="Photo"
-                      title="Crop & position"
-                      subtitle="Drag to move · Pinch or slider to zoom"
+                      icon={<Camera className="h-4 w-4" />}
+                      label="Step 1"
+                      title="Upload your photo"
+                      subtitle="Drag & drop, browse, or use your camera. HEIC supported."
                     />
-                    <UploadZone
-                      onPhotoLoaded={handlePhotoLoaded}
-                      compact
-                    />
-                  </div>
+                    <UploadZone onPhotoLoaded={handlePhotoLoaded} className="mt-4" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="configure-step"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="flex flex-col gap-6"
+                  >
+                    {/* Compact re-upload */}
+                    <div className="flex items-center justify-between gap-3">
+                      <StepHeader
+                        icon={<ImageIcon className="h-4 w-4" />}
+                        label="Photo"
+                        title="Crop & position"
+                        subtitle="Drag to move · Pinch or slider to zoom"
+                      />
+                      <UploadZone
+                        onPhotoLoaded={handlePhotoLoaded}
+                        compact
+                      />
+                    </div>
 
-                  <PhotoCropper
-                    photo={photo}
-                    onCropComplete={handleCropComplete}
-                  />
-
-                  {/* Mode selector */}
-                  <div className="mt-2">
-                    <StepHeader
-                      icon={<Layers className="h-4 w-4" />}
-                      label="Style"
-                      title="Choose your style"
-                      subtitle="Profile Frame for a circular avatar, Builder ID for a full identity card."
+                    <PhotoCropper
+                      photo={photo}
+                      onCropComplete={handleCropComplete}
                     />
-                    <ModeSelector
-                      value={mode}
-                      onChange={handleModeChange}
-                      className="mt-4"
-                    />
-                  </div>
 
-                  {/* Conditional builder form */}
-                  <AnimatePresence>
-                    {mode === "builder-id" && (
-                      <motion.div
-                        key="builder-form"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden"
+                    {/* Mode selector */}
+                    <div className="mt-2">
+                      <StepHeader
+                        icon={<Layers className="h-4 w-4" />}
+                        label="Style"
+                        title="Choose your style"
+                        subtitle="Profile Frame for a circular avatar, Builder ID for a full identity card."
+                      />
+                      <ModeSelector
+                        value={mode}
+                        onChange={handleModeChange}
+                        className="mt-4"
+                      />
+                    </div>
+
+                    {/* Conditional builder form */}
+                    <AnimatePresence>
+                      {mode === "builder-id" && (
+                        <motion.div
+                          key="builder-form"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <StepHeader
+                            icon={<Wand2 className="h-4 w-4" />}
+                            label="Identity"
+                            title="Your builder details"
+                            subtitle="All fields update the preview live."
+                          />
+                          <BuilderForm
+                            initialName={name}
+                            initialRole={role}
+                            initialTitle={builderTitle}
+                            onChange={handleFormChange}
+                            className="mt-4"
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Reset all */}
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={handleResetAll}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-coral-deep"
                       >
-                        <StepHeader
-                          icon={<Wand2 className="h-4 w-4" />}
-                          label="Identity"
-                          title="Your builder details"
-                          subtitle="All fields update the preview live."
-                        />
-                        <BuilderForm
-                          initialName={name}
-                          initialRole={role}
-                          initialTitle={builderTitle}
-                          onChange={handleFormChange}
-                          className="mt-4"
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Clear saved data
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
-                  {/* Reset all */}
-                  <div className="flex items-center justify-end">
-                    <button
-                      type="button"
-                      onClick={handleResetAll}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-coral-deep"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Clear saved data
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* RIGHT: live preview */}
-          <div className="lg:sticky lg:top-24 lg:self-start">
+          {/* RIGHT: live preview / result */}
+          <div className={cn(hasGenerated ? "" : "lg:sticky lg:top-24 lg:self-start")}>
             <div className="relative">
-              <StepHeader
-                icon={<Wand2 className="h-4 w-4" />}
-                label="Live preview"
-                title="Your builder identity"
-                subtitle="Updates instantly · 1080×1080 retina export"
-              />
+              {!hasGenerated && (
+                <StepHeader
+                  icon={<Wand2 className="h-4 w-4" />}
+                  label="Live preview"
+                  title="Your builder identity"
+                  subtitle="Updates instantly · 1080×1080 retina export"
+                />
+              )}
+
+              {hasGenerated && (
+                <div className="mb-6 text-center">
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="inline-flex items-center gap-2 rounded-full bg-emerald/10 px-4 py-2"
+                  >
+                    <CheckCircle2 className="h-4 w-4 text-emerald" />
+                    <span className="text-sm font-semibold text-emerald-deep">
+                      Your Builder ID is ready
+                    </span>
+                  </motion.div>
+                </div>
+              )}
 
               <div className="mt-4">
                 <LivePreview
@@ -432,11 +458,28 @@ export function Studio({ className }: StudioProps) {
               </div>
 
               {/* Helper text */}
-              <p className="mt-4 text-center text-xs text-muted-foreground">
-                {hasGenerated
-                  ? "Tap Download to save the PNG, then Share to X to post."
-                  : "Tap Generate PNG when you're happy with the preview."}
-              </p>
+              {!hasGenerated && (
+                <p className="mt-4 text-center text-xs text-muted-foreground">
+                  Tap Generate PNG when you're happy with the preview.
+                </p>
+              )}
+
+              {/* Start over button — only after generation */}
+              {hasGenerated && (
+                <div className="mt-6 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetGenerator();
+                      setStep("configure");
+                    }}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-deep transition-colors hover:text-emerald"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Edit details
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

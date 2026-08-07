@@ -57,7 +57,11 @@ export function ActionButtons({
       toast.error("Fill in your name and role first.");
       return;
     }
-    const url = buildShareUrl(shareData);
+    const url = buildShareUrl({
+      n: shareData.name,
+      r: shareData.role,
+      t: shareData.builderTitle,
+    });
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);

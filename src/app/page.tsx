@@ -23,14 +23,22 @@ export default function Home() {
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const share = params.get("share");
-    if (share) {
-      const decoded = decodeShareData(share);
-      if (decoded) {
-        setShareData(decoded);
+    const checkShare = () => {
+      const params = new URLSearchParams(window.location.search);
+      const share = params.get("share");
+      if (share) {
+        const decoded = decodeShareData(share);
+        if (decoded) {
+          setShareData(decoded);
+          return;
+        }
       }
-    }
+      setShareData(null);
+    };
+    checkShare();
+    // Listen for browser back/forward so the view switches correctly.
+    window.addEventListener("popstate", checkShare);
+    return () => window.removeEventListener("popstate", checkShare);
   }, []);
 
   const handleBackToGenerator = React.useCallback(() => {
