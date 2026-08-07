@@ -78,7 +78,6 @@ export function UploadZone({ onPhotoLoaded, className, compact = false }: Upload
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) void handleFile(file);
-      // Reset so the same file can be re-selected later.
       e.target.value = "";
     },
     [handleFile]
