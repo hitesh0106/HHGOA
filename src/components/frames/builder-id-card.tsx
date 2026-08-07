@@ -229,24 +229,24 @@ export const BuilderIdCard = React.forwardRef<
 
           {/* Name (hero) → Role → Builder Title (normal font) */}
           <div className="text-center" style={{ maxWidth: 880 }}>
-            {/* 1. Username / Name — prominent, premium, ivory on dark bg */}
+            {/* 1. Username / Name — prominent, premium, dark emerald on light bg */}
             <h2
               className="font-serif text-[56px] leading-[1.05]"
               style={{
                 fontWeight: 700,
                 letterSpacing: "-0.01em",
-                color: "oklch(0.985 0.014 95)",
+                color: "oklch(0.30 0.08 165)",
               }}
             >
               {displayName}
             </h2>
 
-            {/* 2. Role — uppercase, tracked, gold accent */}
+            {/* 2. Role — uppercase, tracked, gold-deep accent */}
             <p
               className="font-sans text-[20px] font-medium uppercase tracking-[0.22em]"
               style={{
                 marginTop: 10,
-                color: "oklch(0.83 0.16 85)",
+                color: "oklch(0.55 0.13 80)",
               }}
             >
               {displayRole}
@@ -256,9 +256,8 @@ export const BuilderIdCard = React.forwardRef<
             <div
               className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full px-5 py-2"
               style={{
-                background: "oklch(0.985 0.014 95 / 0.10)",
-                border: "1px solid oklch(0.83 0.16 85 / 0.30)",
-                backdropFilter: "blur(6px)",
+                background: "oklch(0.42 0.11 165 / 0.08)",
+                border: "1px solid oklch(0.42 0.11 165 / 0.20)",
               }}
             >
               <span
@@ -266,14 +265,14 @@ export const BuilderIdCard = React.forwardRef<
                   width: 6,
                   height: 6,
                   borderRadius: "50%",
-                  background: "oklch(0.83 0.16 85)",
-                  boxShadow: "0 0 8px oklch(0.83 0.16 85 / 0.6)",
+                  background: "oklch(0.55 0.13 80)",
+                  boxShadow: "0 0 8px oklch(0.55 0.13 80 / 0.5)",
                 }}
               />
               <span
                 className="font-sans text-[18px] font-medium"
                 style={{
-                  color: "oklch(0.985 0.014 95)",
+                  color: "oklch(0.30 0.08 165)",
                   letterSpacing: "0.02em",
                 }}
               >
