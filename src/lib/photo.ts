@@ -1,5 +1,5 @@
 /**
- * Photo handling utilities — validation, robust HEIC/HEIF conversion (including iPhone Live Photos),
+ * Photo handling utilities — validation, multi-engine HEIC/HEIF conversion (including iOS 16/17/18 10-bit HDR),
  * cropping, and pixel-perfect crop extraction. All browser-side, no network calls.
  */
 
@@ -30,6 +30,48 @@ async function getHeic2Any(): Promise<Heic2AnyFn> {
     console.warn("[getHeic2Any] import failed", err);
     throw err;
   }
+}
+
+/**
+ * Pure JS/WASM decoding for modern iOS 16/17/18 HEIC files using `heic-decode`.
+ * Converts HEIC container directly into canvas ImageData and returns a JPEG File.
+ */
+async function decodeWithHeicDecode(file: File): Promise<File> {
+  const mod = (await import("heic-decode")) as unknown as Record<string, unknown>;
+  const decodeFn = (typeof mod === "function" ? mod : mod.default) as (options: {
+    buffer: Uint8Array;
+  }) => Promise<{ width: number; height: number; data: ArrayBuffer }>;
+
+  if (typeof decodeFn !== "function") {
+    throw new Error("heic-decode function not available");
+  }
+
+  const buffer = await file.arrayBuffer();
+  const { width, height, data } = await decodeFn({ buffer: new Uint8Array(buffer) });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not get 2d context for heic-decode");
+
+  const imageData = new ImageData(new Uint8ClampedArray(data), width, height);
+  ctx.putImageData(imageData, 0, 0);
+
+  return new Promise<File>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          const newName = file.name.replace(/\.(heic|heif)$/i, ".jpg");
+          resolve(new File([blob], newName, { type: "image/jpeg" }));
+        } else {
+          reject(new Error("Canvas toBlob failed"));
+        }
+      },
+      "image/jpeg",
+      0.92
+    );
+  });
 }
 
 export interface PhotoLoadResult {
@@ -93,16 +135,25 @@ export async function isStandardImageHeader(file: File): Promise<boolean> {
 }
 
 /**
- * Convert HEIC/HEIF files to JPEG using heic2any with ArrayBuffer.
- * Supports iPhone Live Photos, Burst Photos, and Multi-frame HEIC containers via `multiple: true`.
+ * Convert HEIC/HEIF files to JPEG using multi-tiered decoders:
+ *   1. `heic-decode` (Native RGBA ImageData decoder — handles iOS 16/17/18 10-bit HDR HEIC)
+ *   2. `heic2any` multi-frame mode
+ *   3. `heic2any` single-frame mode
  */
 export async function convertHeicToJpeg(file: File): Promise<File> {
-  const heic2any = await getHeic2Any();
-  const buffer = await file.arrayBuffer();
-  const cleanBlob = new Blob([buffer], { type: "image/heic" });
-
+  // 1. Try heic-decode (supports modern iOS 16/17/18 10-bit HDR & ProRAW formats)
   try {
-    // 1. First attempt with multiple: true (handles iPhone Live Photos & Burst mode)
+    return await decodeWithHeicDecode(file);
+  } catch (err1) {
+    console.warn("[heic-decode] engine failed, attempting heic2any fallback...", err1);
+  }
+
+  // 2. Try heic2any with multiple: true
+  try {
+    const heic2any = await getHeic2Any();
+    const buffer = await file.arrayBuffer();
+    const cleanBlob = new Blob([buffer], { type: "image/heic" });
+
     const result = await heic2any({
       blob: cleanBlob,
       toType: "image/jpeg",
@@ -111,29 +162,36 @@ export async function convertHeicToJpeg(file: File): Promise<File> {
     });
 
     const blob = Array.isArray(result) ? result[0] : result;
-    if (!blob || !(blob instanceof Blob)) {
-      throw new Error("Invalid blob result from heic2any");
-    }
-
-    const newName = file.name.replace(/\.(heic|heif)$/i, ".jpg");
-    return new File([blob], newName, { type: "image/jpeg" });
-  } catch {
-    // 2. Fallback attempt with single frame mode
-    try {
-      const result = await heic2any({
-        blob: cleanBlob,
-        toType: "image/jpeg",
-        quality: 0.88,
-      });
-      const blob = Array.isArray(result) ? result[0] : result;
+    if (blob && blob instanceof Blob) {
       const newName = file.name.replace(/\.(heic|heif)$/i, ".jpg");
       return new File([blob], newName, { type: "image/jpeg" });
-    } catch {
-      throw new Error(
-        "We could not convert that HEIC photo. Try exporting as JPG from your Photos app or snap a selfie with Use Camera."
-      );
     }
+  } catch (err2) {
+    console.warn("[heic2any] multi-frame attempt failed...", err2);
   }
+
+  // 3. Try heic2any single frame fallback
+  try {
+    const heic2any = await getHeic2Any();
+    const buffer = await file.arrayBuffer();
+    const cleanBlob = new Blob([buffer], { type: "image/heic" });
+    const result = await heic2any({
+      blob: cleanBlob,
+      toType: "image/jpeg",
+      quality: 0.88,
+    });
+    const blob = Array.isArray(result) ? result[0] : result;
+    if (blob && blob instanceof Blob) {
+      const newName = file.name.replace(/\.(heic|heif)$/i, ".jpg");
+      return new File([blob], newName, { type: "image/jpeg" });
+    }
+  } catch {
+    // ignore
+  }
+
+  throw new Error(
+    "Could not convert this HEIC photo. Please export as JPG from your Photos app or snap a selfie with Use Camera."
+  );
 }
 
 /**
@@ -142,7 +200,8 @@ export async function convertHeicToJpeg(file: File): Promise<File> {
  *  1. createImageBitmap (Hardware-accelerated native browser decode)
  *  2. Header Magic Byte Inspection (for JPEGs/PNGs named .heic)
  *  3. Native HTMLImageElement Decode (Safari / macOS / iOS)
- *  4. heic2any WASM Decoder
+ *  4. heic-decode (Pure JS ImageData decoder for iOS 16/17/18)
+ *  5. heic2any WASM Decoder
  */
 export async function loadPhotoFromFile(file: File): Promise<PhotoLoadResult> {
   const name = file.name.toLowerCase();
@@ -224,7 +283,7 @@ export async function loadPhotoFromFile(file: File): Promise<PhotoLoadResult> {
     }
   }
 
-  // 4. Fallback to WASM converter if HEIC and native decode failed
+  // 4. Fallback to WASM/ImageData converters if HEIC and native decode failed
   let working = file;
   let converted = false;
 
