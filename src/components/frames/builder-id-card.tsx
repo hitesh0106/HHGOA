@@ -60,25 +60,24 @@ export const BuilderIdCard = React.forwardRef<
       }}
     >
       {/* 3–5% Vintage Paper Grain Texture Overlay */}
-      <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.04] z-30">
+      <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.03] z-30">
         <filter id="paper-noise">
           <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
         </filter>
         <rect width="100%" height="100%" filter="url(#paper-noise)" />
       </svg>
 
-      {/* Subtle Top-Right Sunlight Glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-20 -top-20 h-[450px] w-[450px] rounded-full z-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at 90% 10%, rgba(229, 169, 60, 0.18) 0%, rgba(229, 169, 60, 0.03) 50%, transparent 70%)",
-        }}
-      />
+      {/* Single Clean Outer Border Frame (Matching Reference Layout) */}
+      <div className="absolute inset-4 rounded-[2.2rem] border-3 border-[#0D3B2E] p-7 flex flex-col justify-between overflow-hidden bg-[#FDFBF7] z-10">
 
-      {/* Outer Single Luxury Printed Pass Frame */}
-      <div className="absolute inset-5 rounded-2xl border-3 border-[#0D3B2E] p-7 flex flex-col justify-between overflow-hidden bg-[#FDFBF7]/98 z-10">
+        {/* Soft Blurred White Goa Tropical Environment Background Layer (Clipped Inside Green Border) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/goa-beach-soft-bg.jpg"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover z-0"
+        />
 
         {/* Faded Passport Stamp Watermark Behind Header (6% Opacity) */}
         <div className="pointer-events-none absolute left-8 top-6 border-2 border-dashed border-[#0D3B2E] p-3 opacity-[0.06] rotate-[-10deg] rounded-lg z-0">
@@ -87,15 +86,6 @@ export const BuilderIdCard = React.forwardRef<
           </p>
           <p className="font-mono text-[12px] font-bold text-[#C85A32]">INDIA POST · 2026</p>
         </div>
-
-        {/* Single Elegant Top-Right Palm Leaf */}
-        <PalmFrond
-          className="absolute -right-20 -top-12 w-[520px] text-[#0D3B2E]/[0.08] pointer-events-none z-0"
-          style={{
-            filter: "drop-shadow(3px 10px 14px rgba(13, 59, 46, 0.15))",
-            transform: "rotate(-25deg)",
-          }}
-        />
 
         {/* Tiny Decorative Stars */}
         <Sparkle className="absolute top-[12%] right-[22%] h-4 w-4 text-[#E5A93C] opacity-80" />

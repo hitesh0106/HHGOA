@@ -55,33 +55,23 @@ export const TeamFrameCard = React.forwardRef<
       }}
     >
       {/* 3–5% Vintage Paper Grain Texture Overlay */}
-      <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.04] z-30">
+      <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.03] z-30">
         <filter id="team-paper-noise">
           <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
         </filter>
         <rect width="100%" height="100%" filter="url(#team-paper-noise)" />
       </svg>
 
-      {/* Subtle Top-Right Sunlight Glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-20 -top-20 h-[450px] w-[450px] rounded-full z-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at 90% 10%, rgba(229, 169, 60, 0.18) 0%, rgba(229, 169, 60, 0.03) 50%, transparent 70%)",
-        }}
-      />
+      {/* Single Clean Outer Border Frame (Matching Reference Layout) */}
+      <div className="absolute inset-4 rounded-[2.2rem] border-3 border-[#0D3B2E] p-7 flex flex-col justify-between overflow-hidden bg-[#FDFBF7] z-10">
 
-      {/* Outer Single Luxury Printed Pass Frame */}
-      <div className="absolute inset-5 rounded-2xl border-3 border-[#0D3B2E] p-7 flex flex-col justify-between overflow-hidden bg-[#FDFBF7]/98 z-10">
-
-        {/* Top-Right Palm Frond with Soft Shadow ONLY */}
-        <PalmFrond
-          className="absolute -right-20 -top-12 w-[520px] text-[#0D3B2E]/[0.08] pointer-events-none z-0"
-          style={{
-            filter: "drop-shadow(3px 10px 14px rgba(13, 59, 46, 0.15))",
-            transform: "rotate(-25deg)",
-          }}
+        {/* Soft Blurred White Goa Tropical Environment Background Layer (Clipped Inside Green Border) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/goa-beach-soft-bg.jpg"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover z-0"
         />
 
         {/* Tiny Decorative Stars */}
