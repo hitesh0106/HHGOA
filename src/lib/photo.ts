@@ -138,7 +138,11 @@ export async function convertHeicToJpeg(file: File): Promise<File> {
 
 /**
  * Load a File into a PhotoState object.
- * First inspects magic bytes, then tests native browser decoding (Safari, iOS, macOS), then falls back to WASM conversion.
+ * Priority pipeline:
+ *  1. createImageBitmap (Hardware-accelerated native browser decode)
+ *  2. Header Magic Byte Inspection (for JPEGs/PNGs named .heic)
+ *  3. Native HTMLImageElement Decode (Safari / macOS / iOS)
+ *  4. heic2any WASM Decoder
  */
 export async function loadPhotoFromFile(file: File): Promise<PhotoLoadResult> {
   const name = file.name.toLowerCase();
@@ -146,7 +150,36 @@ export async function loadPhotoFromFile(file: File): Promise<PhotoLoadResult> {
   const isHeicMime = file.type === "image/heic" || file.type === "image/heif";
   const isHeic = isHeicExt || isHeicMime;
 
-  // 1. Check if file is actually a standard JPEG/PNG/WEBP disguised as .heic
+  // 1. Try createImageBitmap first (Hardware-accelerated native decode on macOS, iOS, Windows 11, Android)
+  if (typeof window !== "undefined" && "createImageBitmap" in window) {
+    try {
+      const bitmap = await createImageBitmap(file);
+      if (bitmap && bitmap.width > 0 && bitmap.height > 0) {
+        const canvas = document.createElement("canvas");
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(bitmap, 0, 0);
+          const dataUrl = canvas.toDataURL("image/png");
+          const photo: PhotoState = {
+            src: dataUrl,
+            width: bitmap.width,
+            height: bitmap.height,
+            orientation: detectOrientation(bitmap.width, bitmap.height),
+            fileName: file.name,
+            mimeType: "image/png",
+            loadedAt: Date.now(),
+          };
+          return { photo, converted: isHeic };
+        }
+      }
+    } catch {
+      // createImageBitmap not supported for this specific file format on this browser; proceed to fallbacks
+    }
+  }
+
+  // 2. Check if file is actually a standard JPEG/PNG/WEBP disguised as .heic
   const isStandard = await isStandardImageHeader(file);
   if (isStandard) {
     try {
@@ -169,7 +202,7 @@ export async function loadPhotoFromFile(file: File): Promise<PhotoLoadResult> {
     }
   }
 
-  // 2. Try native browser decoding (works natively on Safari / iOS / macOS / Edge)
+  // 3. Try native HTMLImageElement decoding (works natively on Safari / iOS / macOS)
   if (isHeic) {
     try {
       const dataUrl = await fileToDataUrl(file);
@@ -191,7 +224,7 @@ export async function loadPhotoFromFile(file: File): Promise<PhotoLoadResult> {
     }
   }
 
-  // 3. Fallback to WASM converter if HEIC and native decode failed
+  // 4. Fallback to WASM converter if HEIC and native decode failed
   let working = file;
   let converted = false;
 
