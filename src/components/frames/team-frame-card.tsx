@@ -31,7 +31,7 @@ export const TeamFrameCard = React.forwardRef<
   { teamName, teamTagline, college, members, className },
   ref
 ) {
-  const displayTeamName = teamName?.trim() || "TEAM ALPHA";
+  const displayTeamName = teamName?.trim() || "TEAM NAME";
   const displaySubtext = teamTagline?.trim() || college?.trim() || "Official Goa Expedition Team";
 
   const memberList = members && members.length >= 2 ? members : [
