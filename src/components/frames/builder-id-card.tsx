@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { cn, getInitials } from "@/lib/utils";
-import { PalmFrond, MonsteraLeaf, Sparkle, PalmLeaf } from "@/components/decor/tropical";
+import { PalmFrond, Sparkle } from "@/components/decor/tropical";
+import { MapPin, Waves, Trees } from "lucide-react";
 
 interface BuilderIdCardProps {
   /** Cropped square avatar data URL. */
@@ -10,184 +11,147 @@ interface BuilderIdCardProps {
   name: string;
   role: string;
   builderTitle: string;
+  twitter?: string;
+  builderId?: string;
   initials?: string;
   className?: string;
 }
 
 /**
- * 1080×1080 Builder ID card composition. Premium tropical identity card.
- *
- * Layout:
- *   - Ivory background with subtle tropical mesh
- *   - Top: "BUILDER ID" badge + "HH Goa 2026" wordmark
- *   - Left: large circular avatar with golden ring + palm leaf
- *   - Right: Builder Title (serif, gold gradient), Name, Role, badge chips
- *   - Bottom: decorative divider + hashtag + edition mark
- *   - Floating palm decorations in corners
+ * 1080×1080 Official HH Goa Expedition Builder Pass
+ * Ultra-Large High-Legibility Fonts & Expanded Hero Elements:
+ *   · Header Title: 38px Font-Black
+ *   · Header Subtitle: 18px Font-Bold
+ *   · Ticket Stamp Dates: 18px Font-Black / 15px Subtext
+ *   · Arched Photo Frame: 390×460px
+ *   · Builder Name: 66px Font-Black
+ *   · Role & Twitter Badges: 18px–20px Font-Black
+ *   · AI Title Badge: 26px Font-Bold
+ *   · Verified Badge & Footer: 17px–18px Font-Black
  */
 export const BuilderIdCard = React.forwardRef<
   HTMLDivElement,
   BuilderIdCardProps
 >(function BuilderIdCard(
-  { avatarUrl, name, role, builderTitle, initials },
+  { avatarUrl, name, role, builderTitle, twitter, initials, className },
   ref
 ) {
   const fallback = initials || getInitials(name) || "B";
-  const displayName = name || "Your Name";
+  const displayName = name || "Your Name Here";
   const displayRole = role || "Stack / Role";
-  const displayTitle = builderTitle || "Builder of Tomorrow";
+  const displayTitle = builderTitle || "AI Architect";
+  const formattedTwitter = twitter
+    ? twitter.startsWith("@")
+      ? twitter
+      : `@${twitter}`
+    : "";
 
   return (
     <div
       ref={ref}
-      className="relative overflow-hidden"
+      className={cn(
+        "relative overflow-hidden bg-[#FDFBF7] font-sans text-[#0D3B2E]",
+        className
+      )}
       style={{
         width: 1080,
         height: 1080,
-        background:
-          "linear-gradient(160deg, oklch(0.985 0.012 90) 0%, oklch(0.96 0.02 90) 45%, oklch(0.94 0.025 80) 100%)",
         colorScheme: "light",
       }}
     >
-      {/* Mesh gradient overlays */}
+      {/* 3–5% Vintage Paper Grain Texture Overlay */}
+      <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.04] z-30">
+        <filter id="paper-noise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#paper-noise)" />
+      </svg>
+
+      {/* Subtle Top-Right Sunlight Glow */}
       <div
         aria-hidden
-        className="absolute inset-0"
+        className="pointer-events-none absolute -right-20 -top-20 h-[450px] w-[450px] rounded-full z-0"
         style={{
           background:
-            "radial-gradient(60% 50% at 18% 12%, oklch(0.62 0.10 165 / 0.16) 0%, transparent 70%), radial-gradient(50% 40% at 88% 8%, oklch(0.83 0.16 85 / 0.20) 0%, transparent 70%), radial-gradient(60% 50% at 78% 92%, oklch(0.68 0.19 25 / 0.14) 0%, transparent 70%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-[0.10]"
-        style={{
-          backgroundImage:
-            "radial-gradient(oklch(0.30 0.06 165) 1.5px, transparent 1.5px)",
-          backgroundSize: "28px 28px",
+            "radial-gradient(ellipse at 90% 10%, rgba(229, 169, 60, 0.18) 0%, rgba(229, 169, 60, 0.03) 50%, transparent 70%)",
         }}
       />
 
-      {/* Decorative palms in corners */}
-      <PalmFrond
-        className="absolute -left-20 -top-24 w-[420px]"
-        style={{
-          color: "oklch(0.42 0.11 165)",
-          opacity: 0.95,
-          filter: "drop-shadow(0 18px 36px oklch(0.42 0.11 165 / 0.25))",
-          transform: "rotate(-18deg)",
-        }}
-      />
-      <MonsteraLeaf
-        className="absolute -bottom-16 -right-20 w-[400px]"
-        style={{
-          color: "oklch(0.42 0.11 165)",
-          opacity: 0.85,
-          filter: "drop-shadow(0 18px 36px oklch(0.42 0.11 165 / 0.22))",
-          transform: "rotate(160deg)",
-        }}
-      />
-      <PalmLeaf
-        className="absolute -right-8 top-[36%] w-[140px]"
-        style={{
-          color: "oklch(0.62 0.10 165)",
-          opacity: 0.6,
-          transform: "rotate(40deg)",
-        }}
-      />
+      {/* Outer Single Luxury Printed Pass Frame */}
+      <div className="absolute inset-5 rounded-2xl border-3 border-[#0D3B2E] p-7 flex flex-col justify-between overflow-hidden bg-[#FDFBF7]/98 z-10">
 
-      {/* Sparkles */}
-      <Sparkle
-        className="absolute right-[10%] top-[14%] h-4 w-4"
-        style={{ color: "oklch(0.68 0.19 25)", opacity: 0.85 }}
-      />
-      <Sparkle
-        className="absolute left-[12%] bottom-[20%] h-3 w-3"
-        style={{ color: "oklch(0.83 0.16 85)", opacity: 0.8 }}
-      />
-      <Sparkle
-        className="absolute right-[18%] bottom-[14%] h-5 w-5"
-        style={{ color: "oklch(0.83 0.16 85)", opacity: 0.75 }}
-      />
+        {/* Faded Passport Stamp Watermark Behind Header (6% Opacity) */}
+        <div className="pointer-events-none absolute left-8 top-6 border-2 border-dashed border-[#0D3B2E] p-3 opacity-[0.06] rotate-[-10deg] rounded-lg z-0">
+          <p className="font-mono text-[14px] font-black uppercase tracking-widest text-[#0D3B2E]">
+            GOA · FROM PARADISE
+          </p>
+          <p className="font-mono text-[12px] font-bold text-[#C85A32]">INDIA POST · 2026</p>
+        </div>
 
-      {/* Card content frame */}
-      <div
-        className="absolute inset-0 flex flex-col"
-        style={{ padding: 64 }}
-      >
-        {/* Top header */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            {/* Emerald badge with "BUILDER ID" */}
-            <div
-              className="flex items-center gap-2 rounded-full px-4 py-2"
-              style={{
-                background: "linear-gradient(135deg, oklch(0.42 0.11 165), oklch(0.30 0.08 165))",
-                boxShadow: "0 8px 20px oklch(0.42 0.11 165 / 0.35)",
-              }}
-            >
-              <span
-                className="grid h-5 w-5 place-items-center rounded-full"
-                style={{ background: "oklch(0.83 0.16 85)" }}
-              >
-                <Sparkle className="h-3 w-3 text-emerald-deep" />
-              </span>
-              <span
-                className="font-sans text-[14px] font-bold uppercase tracking-[0.20em] text-ivory"
-              >
-                Builder ID
-              </span>
+        {/* Single Elegant Top-Right Palm Leaf */}
+        <PalmFrond
+          className="absolute -right-20 -top-12 w-[520px] text-[#0D3B2E]/[0.08] pointer-events-none z-0"
+          style={{
+            filter: "drop-shadow(3px 10px 14px rgba(13, 59, 46, 0.15))",
+            transform: "rotate(-25deg)",
+          }}
+        />
+
+        {/* Tiny Decorative Stars */}
+        <Sparkle className="absolute top-[12%] right-[22%] h-4 w-4 text-[#E5A93C] opacity-80" />
+        <Sparkle className="absolute top-[30%] left-[8%] h-3.5 w-3.5 text-[#C85A32] opacity-70" />
+        <Sparkle className="absolute bottom-[24%] right-[10%] h-4 w-4 text-[#E5A93C] opacity-80" />
+
+        {/* ============ HEADER: ULTRA PROMINENT & VISIBLE FONTS ============ */}
+        <div className="relative z-10 flex items-center justify-between border-b-2 border-[#0D3B2E] pb-4 pt-1">
+          <div className="flex items-center gap-4">
+            <div className="grid h-14 w-14 place-items-center rounded-xl border-2 border-[#0D3B2E] bg-[#0D3B2E] text-[#E5A93C] shadow-[2px_2px_0px_#E5A93C]">
+              <img src="/hh-logo.png" alt="HH Logo" className="h-8 w-8 rounded object-cover" />
+            </div>
+            <div>
+              <p className="font-serif text-[38px] font-black uppercase tracking-[0.12em] text-[#0D3B2E] leading-none">
+                Hacker House Goa
+              </p>
+              <p className="font-mono text-[18px] font-bold uppercase tracking-[0.20em] text-[#C85A32] mt-1">
+                Official Expedition Pass · 2026
+              </p>
             </div>
           </div>
 
-          {/* HH Goa 2026 wordmark */}
-          <div className="text-right">
-            <p
-              className="font-serif text-[20px] tracking-[0.16em] text-emerald-deep"
-              style={{ fontWeight: 600 }}
-            >
-              HH Goa
-            </p>
-            <p
-              className="font-sans text-[12px] uppercase tracking-[0.32em] text-gold-deep"
-              style={{ marginTop: 2 }}
-            >
-              2026 · Builders Edition
-            </p>
+          {/* Prominent Ticket Stamp Badge */}
+          <div className="flex items-center gap-3.5 rounded-xl border-2 border-[#0D3B2E] bg-[#E5A93C]/25 px-5 py-2.5 shadow-[2px_2px_0px_#0D3B2E]">
+            <div className="text-right">
+              <p className="font-mono text-[18px] font-black uppercase tracking-wider text-[#0D3B2E]">
+                28–31 OCT 2026
+              </p>
+              <p className="font-mono text-[14px] font-extrabold uppercase tracking-widest text-[#C85A32]">
+                GOA INDIA · PASS #026
+              </p>
+            </div>
+            <div className="grid h-10 w-10 place-items-center rounded-full border-2 border-dashed border-[#0D3B2E] bg-[#0D3B2E] font-mono text-[14px] font-black text-[#E5A93C]">
+              ★
+            </div>
           </div>
         </div>
 
-        {/* Main content: avatar + identity */}
-        <div className="flex flex-1 flex-col items-center justify-center gap-10" style={{ paddingTop: 24, paddingBottom: 24 }}>
-          {/* Avatar */}
-          <div className="relative">
-            {/* Gold glow */}
+        {/* ============ HERO CENTERPIECE: ARCHED PHOTO FRAME + BUILDER DETAILS ============ */}
+        <div className="relative z-10 my-auto flex flex-col items-center text-center py-2">
+          
+          {/* HERO ARCHED PHOTO FRAME (Layered Colonial Arch Borders) */}
+          <div className="relative mb-5">
             <div
-              aria-hidden
-              className="absolute -inset-6 rounded-full"
+              className="relative grid place-items-center overflow-hidden border-4 border-[#0D3B2E] bg-[#C85A32] p-2"
               style={{
-                background:
-                  "radial-gradient(circle, oklch(0.83 0.16 85 / 0.35) 0%, oklch(0.83 0.16 85 / 0) 70%)",
-              }}
-            />
-            {/* Gold ring */}
-            <div
-              className="relative grid place-items-center rounded-full"
-              style={{
-                width: 340,
-                height: 340,
-                padding: 10,
-                background:
-                  "conic-gradient(from 30deg, oklch(0.85 0.16 85), oklch(0.68 0.16 80), oklch(0.85 0.16 85), oklch(0.68 0.16 80), oklch(0.85 0.16 85))",
-                boxShadow:
-                  "0 24px 56px oklch(0.42 0.11 165 / 0.30), inset 0 0 0 1px oklch(0.985 0.012 90 / 0.5)",
+                width: 390,
+                height: 460,
+                borderRadius: "195px 195px 26px 26px",
+                boxShadow: "8px 8px 0px #0D3B2E",
               }}
             >
               <div
-                className="grid h-full w-full place-items-center overflow-hidden rounded-full"
+                className="relative h-full w-full overflow-hidden border-2 border-[#0D3B2E] bg-[#0D3B2E]"
                 style={{
-                  background: "oklch(0.42 0.11 165)",
-                  border: "3px solid oklch(0.985 0.012 90)",
+                  borderRadius: "185px 185px 20px 20px",
                 }}
               >
                 {avatarUrl ? (
@@ -197,133 +161,76 @@ export const BuilderIdCard = React.forwardRef<
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div
-                    className="grid h-full w-full place-items-center"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, oklch(0.62 0.10 165), oklch(0.42 0.11 165))",
-                    }}
-                  >
-                    <span
-                      className="font-serif text-[120px] text-ivory"
-                      style={{ fontWeight: 700 }}
-                    >
-                      {fallback}
-                    </span>
+                  <div className="grid h-full w-full place-items-center bg-[#0D3B2E] text-[#E5A93C]">
+                    <span className="font-serif text-[120px] font-black">{fallback}</span>
                   </div>
                 )}
+
+                <div className="absolute bottom-0 inset-x-0 bg-[#0D3B2E]/92 py-2.5 border-t-2 border-[#E5A93C] text-center">
+                  <span className="font-mono text-[14px] font-black uppercase tracking-[0.24em] text-[#E5A93C]">
+                    Official Builder Badge
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Small palm leaf decoration on avatar */}
-            <PalmLeaf
-              className="absolute -right-10 -top-6 w-[100px]"
-              style={{
-                color: "oklch(0.42 0.11 165)",
-                opacity: 0.85,
-                transform: "rotate(28deg)",
-                filter: "drop-shadow(0 8px 16px oklch(0.42 0.11 165 / 0.3))",
-              }}
-            />
+            {/* Sun Stamp Badge */}
+            <div className="absolute -right-5 -top-3 grid h-16 w-16 place-items-center rounded-full border-2 border-[#0D3B2E] bg-[#E5A93C] text-[#0D3B2E] font-mono text-sm font-black shadow-[3px_3px_0px_#0D3B2E]">
+              ☀️ GOA
+            </div>
           </div>
 
-          {/* Name (hero) → Role → Builder Title (normal font) */}
-          <div className="text-center" style={{ maxWidth: 880 }}>
-            {/* 1. Username / Name — prominent, premium, dark emerald on light bg */}
-            <h2
-              className="font-serif text-[56px] leading-[1.05]"
-              style={{
-                fontWeight: 700,
-                letterSpacing: "-0.01em",
-                color: "oklch(0.30 0.08 165)",
-              }}
-            >
-              {displayName}
-            </h2>
+          {/* Builder Name */}
+          <h2 className="font-serif text-[66px] font-black leading-none tracking-tight text-[#0D3B2E]">
+            {displayName}
+          </h2>
 
-            {/* 2. Role — uppercase, tracked, gold-deep accent */}
-            <p
-              className="font-sans text-[20px] font-medium uppercase tracking-[0.22em]"
-              style={{
-                marginTop: 10,
-                color: "oklch(0.55 0.13 80)",
-              }}
-            >
+          {/* Beach Wave Line Accent */}
+          <svg className="my-3 h-3.5 w-52 text-[#C85A32]" viewBox="0 0 100 20" fill="none" stroke="currentColor" strokeWidth="3">
+            <path d="M0 10 Q25 0 50 10 T100 10" />
+          </svg>
+
+          {/* Role / Stack Tag & Twitter Handle Tag */}
+          <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
+            <span className="rounded-xl border-2 border-[#0D3B2E] bg-[#E5A93C] px-7 py-2 font-mono text-[20px] font-black uppercase tracking-[0.2em] text-[#0D3B2E] shadow-[3px_3px_0px_#0D3B2E]">
               {displayRole}
-            </p>
-
-            {/* 3. Builder Title — normal font, subtle chip style */}
-            <div
-              className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full px-5 py-2"
-              style={{
-                background: "oklch(0.42 0.11 165 / 0.08)",
-                border: "1px solid oklch(0.42 0.11 165 / 0.20)",
-              }}
-            >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "oklch(0.55 0.13 80)",
-                  boxShadow: "0 0 8px oklch(0.55 0.13 80 / 0.5)",
-                }}
-              />
-              <span
-                className="font-sans text-[18px] font-medium"
-                style={{
-                  color: "oklch(0.30 0.08 165)",
-                  letterSpacing: "0.02em",
-                }}
-              >
-                {displayTitle}
+            </span>
+            {formattedTwitter && (
+              <span className="rounded-xl border-2 border-[#0D3B2E] bg-[#1c3529] px-5 py-2 font-mono text-[18px] font-extrabold text-[#d9a726] shadow-[3px_3px_0px_#C85A32]">
+                𝕏 {formattedTwitter}
               </span>
-            </div>
+            )}
+          </div>
+
+          {/* AI Title Badge */}
+          <div className="mt-5 inline-flex items-center gap-2 rounded-2xl border-2 border-[#0D3B2E] bg-[#C85A32] px-7 py-2.5 text-white shadow-[4px_4px_0px_#0D3B2E]">
+            <span className="font-serif text-[26px] font-bold tracking-wide">
+              ⚡ {displayTitle}
+            </span>
           </div>
         </div>
 
-        {/* Bottom footer */}
-        <div>
-          {/* Divider */}
-          <div
-            aria-hidden
-            className="h-px w-full"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, oklch(0.62 0.10 165 / 0.5), oklch(0.83 0.16 85 / 0.7), oklch(0.62 0.10 165 / 0.5), transparent)",
-              marginBottom: 18,
-            }}
-          />
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span
-                className="rounded-full px-3 py-1 font-sans text-[12px] font-semibold uppercase tracking-wider"
-                style={{
-                  background: "oklch(0.42 0.11 165 / 0.10)",
-                  color: "oklch(0.30 0.08 165)",
-                }}
-              >
-                Verified Builder
-              </span>
-              <span
-                className="rounded-full px-3 py-1 font-sans text-[12px] font-semibold uppercase tracking-wider"
-                style={{
-                  background: "oklch(0.83 0.16 85 / 0.18)",
-                  color: "oklch(0.55 0.13 80)",
-                }}
-              >
-                Goa · 2026
-              </span>
+        {/* ============ FOOTER: ULTRA PROMINENT FONTS ============ */}
+        <div className="relative z-10 flex items-center justify-between border-t-2 border-[#0D3B2E] pt-4 pb-1">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2.5 text-[#0D3B2E]">
+              <Trees className="h-5 w-5" />
+              <Waves className="h-5 w-5 text-[#C85A32]" />
+              <MapPin className="h-5 w-5 text-[#E5A93C]" />
             </div>
-            <p
-              className="font-sans text-[14px] tracking-[0.24em] uppercase"
-              style={{ color: "oklch(0.55 0.13 165)" }}
-            >
+            <span className="rounded-md border-2 border-[#0D3B2E] bg-[#0D3B2E] px-4 py-1.5 font-mono text-[17px] font-black uppercase tracking-wider text-[#FDFBF7]">
+              VERIFIED BUILDER
+            </span>
+            <span className="font-mono text-[18px] font-extrabold tracking-wider text-[#C85A32]">
               #FrameInGoa
-            </p>
+            </span>
+          </div>
+
+          <div className="flex items-center font-mono text-[17px] font-black text-[#0D3B2E]">
+            <span>HHGOA.COM</span>
           </div>
         </div>
+
       </div>
     </div>
   );
