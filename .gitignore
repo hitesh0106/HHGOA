@@ -13,42 +13,54 @@ node_modules
 # testing
 /coverage
 
-# next.js
+# Next.js
 /.next/
 /out/
 
 # production
 /build
+/dist
+
+# SQLite / Database
+*.db
+*.sqlite
+*.sqlite3
+/db/*.db
 
 # misc
 .DS_Store
+Thumbs.db
 *.pem
 
-# debug
+# debug & logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-local-*
-.claude
-.z-ai-config
 *.log
 dev.log
 dev.out.log
-test
-prompt
-
 server.log
+
+# Environment variables
+.env
+.env*.local
+
+# Vercel
+.vercel
+
+# TypeScript & Cache
+*.tsbuildinfo
+next-env.d.ts
+
+# Editor & AI Tooling
+.vscode
+.idea
+.claude
+.z-ai-config
+/tool-results/
+/upload/
+/download/
+
 # Skills directory
 /skills/
