@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Sparkle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SiteNavProps {
@@ -10,15 +9,14 @@ interface SiteNavProps {
 }
 
 /**
- * Minimal sticky nav — logo only.
- * No social icons, no CTAs, no mobile menu.
- * Apple / Linear inspired.
+ * Minimal sticky nav with official Hacker House Goa logo on the left
+ * and prominent 2:47 PM STUDIO badge on the top right.
  */
 export function SiteNav({ className }: SiteNavProps) {
   const [scrolled, setScrolled] = React.useState(false);
 
   React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 16);
+    const onScroll = () => setScrolled(window.location ? window.scrollY > 16 : false);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -37,26 +35,40 @@ export function SiteNav({ className }: SiteNavProps) {
         className
       )}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center px-5 sm:px-8">
-        {/* Logo only */}
+      <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5 sm:px-8">
+        {/* Official Hacker House Goa Logo */}
         <a
-          href="#hero"
-          className="group flex items-center gap-2 rounded-full px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
+          href="#studio"
+          className="group flex items-center gap-3 rounded-full px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
           aria-label="HH Goa 2026 Builder Generator — home"
         >
-          <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald to-emerald-deep text-ivory shadow-tropical transition-transform duration-300 group-hover:-rotate-6">
-            <Sparkle className="h-4 w-4" />
-            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-gold shadow-gold-glow" />
+          <span className="relative grid h-11 w-11 shrink-0 overflow-hidden rounded-xl border-2 border-[#1c3529] shadow-[2px_2px_0px_#d9a726] transition-transform duration-300 group-hover:-rotate-6">
+            <img
+              src="/hh-logo.png"
+              alt="Hacker House Goa"
+              className="h-full w-full object-cover"
+            />
           </span>
           <span className="flex flex-col leading-none">
-            <span className="font-serif text-base tracking-wide text-emerald-deep">
-              HH Goa <span className="text-gradient-gold">2026</span>
+            <span className="font-serif text-lg tracking-wide text-[#1c3529] font-black">
+              HH Goa <span className="text-[#e04b77]">2026</span>
             </span>
-            <span className="text-[9px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-[#1c3529]/70 mt-0.5">
               Builder Studio
             </span>
           </span>
         </a>
+
+        {/* Top Right: Enlarged 2:47 PM STUDIO Badge */}
+        <div className="flex items-center gap-2">
+          <div className="relative h-16 sm:h-20 transition-transform duration-200 hover:scale-105">
+            <img
+              src="/studio-badge.png"
+              alt="2:47 PM STUDIO"
+              className="h-full w-auto object-contain drop-shadow-sm"
+            />
+          </div>
+        </div>
       </div>
     </motion.header>
   );

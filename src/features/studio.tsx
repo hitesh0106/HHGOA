@@ -7,13 +7,15 @@ import { UploadZone } from "@/features/upload/upload-zone";
 import { ModeSelector } from "@/features/builder-id/mode-selector";
 import { PhotoCropper } from "@/features/cropper/photo-cropper";
 import { BuilderForm } from "@/features/builder-id/builder-form";
+import { TeamWizard } from "@/features/team-frame/team-wizard";
 import { LivePreview } from "@/features/share/live-preview";
 import { ActionButtons } from "@/features/share/action-buttons";
 import { useImageGenerator } from "@/hooks/use-image-generator";
 import { usePersistedDraft } from "@/hooks/use-persisted-draft";
 import { getCroppedAvatarDataUrl } from "@/lib/photo";
-import { makeThumbnail } from "@/lib/utils";
+import { triggerConfetti } from "@/lib/confetti";
 import { FloatingDecorations } from "@/components/decor/floating-decorations";
+import { Button } from "@/components/ui/button";
 import {
   Camera,
   ImageIcon,
@@ -21,9 +23,10 @@ import {
   CheckCircle2,
   Trash2,
   Layers,
+  Sparkles,
 } from "lucide-react";
 import type { Area } from "react-easy-crop";
-import type { GeneratorMode, PhotoState } from "@/types";
+import type { GeneratorMode, PhotoState, TeamMember } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface StudioProps {
@@ -32,15 +35,6 @@ interface StudioProps {
 
 type Step = "upload" | "configure" | "preview";
 
-/**
- * The Studio — the heart of the app. A single-page flow that walks the
- * user through Upload → Mode select → Configure → Preview, all in place
- * on the same page (no routing).
- *
- * Every keystroke and crop change updates the live preview instantly.
- * The persisted draft (name / role / title / mode / thumb) syncs to
- * localStorage on every change so a refresh picks up where you left off.
- */
 export function Studio({ className }: StudioProps) {
   const { draft, update, clearAll } = usePersistedDraft();
 
@@ -50,12 +44,22 @@ export function Studio({ className }: StudioProps) {
   const [cropArea, setCropArea] = React.useState<Area | null>(null);
   const [mode, setMode] = React.useState<GeneratorMode>(draft.mode ?? "builder-id");
 
-  // Form state lifted up so the live preview can read it.
+  const [isPhotoConfirmed, setIsPhotoConfirmed] = React.useState(false);
+
+  // Single person Builder ID form state
   const [name, setName] = React.useState(draft.name ?? "");
   const [role, setRole] = React.useState(draft.role ?? "");
-  const [builderTitle, setBuilderTitle] = React.useState(
-    draft.builderTitle ?? ""
-  );
+  const [builderTitle, setBuilderTitle] = React.useState(draft.builderTitle ?? "");
+  const [twitter, setTwitter] = React.useState("");
+
+  // Team Frame State (2 or 3 members guided wizard)
+  const [teamName, setTeamName] = React.useState("");
+  const [teamTagline, setTeamTagline] = React.useState("");
+  const [college, setCollege] = React.useState("");
+  const [teamMembers, setTeamMembers] = React.useState<TeamMember[]>([
+    { id: "m-1", name: "", role: "", builderTitle: "", twitter: "", isConfirmed: false },
+    { id: "m-2", name: "", role: "", builderTitle: "", twitter: "", isConfirmed: false },
+  ]);
 
   const renderRef = React.useRef<HTMLDivElement>(null);
   const {
@@ -67,16 +71,7 @@ export function Studio({ className }: StudioProps) {
     reset: resetGenerator,
   } = useImageGenerator({ pixelRatio: 1 });
 
-  // Restore the previous photo thumb on hydration (visual cue only —
-  // we cannot restore the full-res original from a 96px thumbnail).
-  React.useEffect(() => {
-    if (draft.photoThumb) {
-      // Don't auto-load the thumb as the working photo — it's too small
-      // for a 1080×1080 export. We just visually nudge the user.
-    }
-  }, [draft.photoThumb]);
-
-  // Whenever the crop area or photo changes, regenerate the avatar data URL.
+  // Whenever crop area or photo changes in single mode, regenerate avatar data URL.
   React.useEffect(() => {
     let cancelled = false;
     async function regenerate() {
@@ -98,7 +93,7 @@ export function Studio({ className }: StudioProps) {
     };
   }, [photo, cropArea]);
 
-  // Persist on changes.
+  // Persist draft on changes
   React.useEffect(() => {
     update({ mode });
   }, [mode, update]);
@@ -112,27 +107,13 @@ export function Studio({ className }: StudioProps) {
     update({ builderTitle });
   }, [builderTitle, update]);
 
-  // When a photo is uploaded, persist a small thumbnail.
-  React.useEffect(() => {
-    if (!photo) return;
-    let cancelled = false;
-    void (async () => {
-      const thumb = await makeThumbnail(photo.src, 96).catch(() => "");
-      if (!cancelled && thumb) update({ photoThumb: thumb });
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [photo, update]);
-
   const handlePhotoLoaded = React.useCallback((p: PhotoState) => {
     setPhoto(p);
+    setIsPhotoConfirmed(false);
     setStep("configure");
     resetGenerator();
     toast.success("Photo loaded", {
-      description: p.mimeType === "image/jpeg" && /\.heic$/i.test(p.fileName)
-        ? "HEIC converted to JPEG automatically."
-        : "Crop it just right, then choose your style.",
+      description: "Adjust crop and click Confirm Photo.",
     });
   }, [resetGenerator]);
 
@@ -142,25 +123,24 @@ export function Studio({ className }: StudioProps) {
 
   const handleModeChange = React.useCallback((m: GeneratorMode) => {
     setMode(m);
+    setStep("configure");
     resetGenerator();
   }, [resetGenerator]);
 
   const handleFormChange = React.useCallback(
-    (values: { name: string; role: string; builderTitle: string }) => {
-      // Only mark stale if values actually changed AND we've already
-      // generated. This prevents the form's initial mount + title sync
-      // from clearing the freshly-generated state.
+    (values: { name: string; role: string; builderTitle: string; twitter?: string }) => {
       setName((prev) => (prev === values.name ? prev : values.name));
       setRole((prev) => (prev === values.role ? prev : values.role));
       setBuilderTitle((prev) =>
         prev === values.builderTitle ? prev : values.builderTitle
       );
+      setTwitter((prev) => (prev === (values.twitter ?? "") ? prev : values.twitter ?? ""));
     },
     []
   );
 
   const handleGenerate = React.useCallback(async () => {
-    if (!photo) {
+    if (mode !== "team-frame" && !photo) {
       toast.error("Upload a photo first.");
       return;
     }
@@ -170,23 +150,31 @@ export function Studio({ className }: StudioProps) {
       });
       return;
     }
+    if (mode === "team-frame" && !teamName.trim()) {
+      toast.error("Enter your Team Name.");
+      return;
+    }
+
     const result = await generate(renderRef.current);
     if (result) {
       setStep("preview");
-      toast.success("PNG ready", {
-        description: `Rendered in ${result.durationMs} ms · ${result.width}×${result.height}`,
+      triggerConfetti();
+      toast.success("PNG ready 🎉", {
+        description: mode === "team-frame"
+          ? `Official Team Pass for ${teamName} generated!`
+          : `Builder ID for ${name} generated!`,
       });
     } else {
       toast.error("Could not generate the image. Please try again.");
     }
-  }, [photo, mode, name, role, generate]);
+  }, [photo, mode, name, role, teamName, generate]);
 
   const handleDownload = React.useCallback(async () => {
     await download();
     toast.success("Download started", {
-      description: "Saved as hh-goa-builder-card.png",
+      description: mode === "team-frame" ? "Saved as hh-goa-team-pass.png" : "Saved as hh-goa-builder-card.png",
     });
-  }, [download]);
+  }, [download, mode]);
 
   const handleResetAll = React.useCallback(() => {
     clearAll();
@@ -196,6 +184,14 @@ export function Studio({ className }: StudioProps) {
     setName("");
     setRole("");
     setBuilderTitle("");
+    setTeamName("");
+    setTeamTagline("");
+    setCollege("");
+    setTeamMembers([
+      { id: "m-1", name: "", role: "", builderTitle: "", isConfirmed: false },
+      { id: "m-2", name: "", role: "", builderTitle: "", isConfirmed: false },
+    ]);
+    setIsPhotoConfirmed(false);
     setMode("builder-id");
     setStep("upload");
     resetGenerator();
@@ -203,193 +199,292 @@ export function Studio({ className }: StudioProps) {
   }, [clearAll, resetGenerator]);
 
   return (
-    <section
-      id="studio"
-      aria-label="Builder identity studio"
-      className={cn("relative isolate overflow-hidden", className)}
-    >
+    <section id="studio" className={cn("relative py-12 sm:py-16", className)}>
       <FloatingDecorations />
 
-      <div className="relative mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
-        {/* Studio header */}
+      <div className="relative mx-auto max-w-6xl px-5 sm:px-8">
+        {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center">
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="font-sans text-xs font-semibold uppercase tracking-[0.28em] text-emerald"
-          >
-            Studio
-          </motion.p>
           <motion.h2
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.05 }}
-            className="mt-3 font-serif text-3xl tracking-tight text-emerald-deep sm:text-4xl md:text-5xl"
-            style={{ fontWeight: 600 }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="font-serif text-3xl text-emerald-deep sm:text-4xl"
           >
-            Build your Builder Identity
+            {hasGenerated
+              ? mode === "team-frame"
+                ? "Your Official Team Frame is Ready"
+                : "Your Builder Identity is Ready"
+              : "Build your Identity or Team Pass"}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg"
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="mt-2 text-base text-muted-foreground"
           >
-            Upload a photo, choose your style, and watch the live preview update
-            in real time. Everything stays on your device.
+            {hasGenerated
+              ? "Download your PNG artwork, share to X, or copy your public showcase link."
+              : "Choose your mode: Single Builder ID or 2/3 Teammate Guided Pass. Everything updates live in real time."}
           </motion.p>
         </div>
 
-        {/* Step indicator */}
-        <div className="mx-auto mt-10 flex max-w-md items-center justify-center gap-2">
-          {(["upload", "configure", "preview"] as Step[]).map((s, i) => {
-            const active = step === s;
-            const completed =
-              (s === "upload" && photo) ||
-              (s === "configure" && (photo || step === "preview"));
-            return (
-              <React.Fragment key={s}>
-                <div
-                  className={cn(
-                    "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-all",
-                    active
-                      ? "bg-emerald text-ivory shadow-tropical"
-                      : completed
-                        ? "bg-emerald/10 text-emerald-deep"
-                        : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "grid h-5 w-5 place-items-center rounded-full text-[10px]",
-                      active
-                        ? "bg-gold text-emerald-deep"
-                        : completed
-                          ? "bg-emerald/20 text-emerald-deep"
-                          : "bg-muted-foreground/15"
-                    )}
-                  >
-                    {completed && !active ? (
-                      <CheckCircle2 className="h-3 w-3" />
-                    ) : (
-                      i + 1
-                    )}
-                  </span>
-                  {s === "upload"
-                    ? "Upload"
-                    : s === "configure"
-                      ? "Configure"
-                      : "Preview"}
-                </div>
-                {i < 2 && (
-                  <div className="h-px w-6 bg-emerald/15 sm:w-12" />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
+        {/* ============ FINISHED RESULT VIEW (When generated) ============ */}
+        {hasGenerated ? (
+          <div className="mt-10 mx-auto max-w-2xl flex flex-col items-center gap-8">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              className="w-full flex flex-col items-center"
+            >
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald/10 px-4 py-2 mb-6">
+                <CheckCircle2 className="h-4 w-4 text-emerald" />
+                <span className="text-sm font-bold text-emerald-deep">
+                  Official {mode === "team-frame" ? "Team Pass" : "Builder ID"} Generated
+                </span>
+              </div>
 
-        {/* Main layout — switches to single-column result view after generation */}
-        <div
-          className={cn(
-            "mt-12 grid gap-8 lg:gap-12",
-            hasGenerated
-              ? "mx-auto max-w-xl grid-cols-1"
-              : "grid-cols-1 lg:grid-cols-[1fr_1.05fr]"
-          )}
-        >
-          {/* LEFT: controls — hidden after generation */}
-          {!hasGenerated && (
-            <div className="flex flex-col gap-6">
-              <AnimatePresence mode="wait">
-                {step === "upload" || !photo ? (
-                  <motion.div
-                    key="upload-step"
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
+              {/* Large 1080x1080 Card Preview */}
+              <div className="w-full max-w-[500px]">
+                <LivePreview
+                  mode={mode}
+                  avatarUrl={avatarUrl}
+                  name={name}
+                  role={role}
+                  builderTitle={builderTitle}
+                  twitter={twitter}
+                  teamName={teamName}
+                  teamTagline={teamTagline}
+                  college={college}
+                  teamMembers={teamMembers}
+                  isGenerating={isGenerating}
+                  renderRef={renderRef}
+                />
+              </div>
+
+              {/* Action Cluster: Download, Share to X, Copy Link */}
+              <div className="mt-8 w-full max-w-[500px]">
+                <ActionButtons
+                  isGenerating={isGenerating}
+                  hasGenerated={hasGenerated}
+                  result={lastResult}
+                  onGenerate={handleGenerate}
+                  onDownload={handleDownload}
+                  mode={mode}
+                  shareData={{ name, role, builderTitle }}
+                  teamName={teamName}
+                  teamTagline={teamTagline}
+                  college={college}
+                  teamMembers={teamMembers}
+                  avatarUrl={avatarUrl}
+                />
+              </div>
+
+              {/* Bottom CTA */}
+              <div className="mt-10 w-full border-t border-emerald/15 pt-8 text-center flex flex-col items-center gap-3">
+                <p className="font-serif text-2xl font-bold text-emerald-deep">
+                  Want your own {mode === "team-frame" ? "Team Frame" : "Builder ID"}?
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Generate your official HH Goa 2026 pass in seconds.
+                </p>
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+                  <Button
+                    type="button"
+                    onClick={handleResetAll}
+                    className="h-12 rounded-full bg-gradient-to-br from-emerald to-emerald-deep px-8 text-sm font-bold text-ivory shadow-tropical"
                   >
-                    <StepHeader
-                      icon={<Camera className="h-4 w-4" />}
-                      label="Step 1"
-                      title="Upload your photo"
-                      subtitle="Drag & drop, browse, or use your camera. HEIC supported."
-                    />
-                    <UploadZone onPhotoLoaded={handlePhotoLoaded} className="mt-4" />
-                  </motion.div>
-                ) : (
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Create Your Own {mode === "team-frame" ? "Team Frame" : "Builder ID"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      resetGenerator();
+                      setStep("configure");
+                    }}
+                    className="h-12 rounded-full border-2 border-emerald/25 bg-card px-6 text-sm font-bold text-emerald-deep hover:bg-emerald/5"
+                  >
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Edit Details
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        ) : (
+          /* ============ EDITOR VIEW (Before generated) ============ */
+          <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_1.05fr] lg:gap-12">
+            {/* LEFT: controls & form — Desktop: Left (lg:order-1) | Mobile: Below Preview (order-2) */}
+            <div className="order-2 flex flex-col gap-6 lg:order-1">
+              {/* Mode Selector is ALWAYS accessible at top left */}
+              <div className="mb-2">
+                <StepHeader
+                  icon={<Layers className="h-4 w-4" />}
+                  label="Mode"
+                  title="Choose your mode"
+                  subtitle="Switch instantly between Single Builder ID and Team Frame (2 or 3 members)."
+                />
+                <ModeSelector
+                  value={mode}
+                  onChange={handleModeChange}
+                  className="mt-4"
+                />
+              </div>
+
+              <AnimatePresence mode="wait">
+                {/* ============ MODE 1: SINGLE BUILDER ID ============ */}
+                {mode !== "team-frame" && (
                   <motion.div
-                    key="configure-step"
+                    key="single-builder-mode"
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     className="flex flex-col gap-6"
                   >
-                    {/* Compact re-upload */}
-                    <div className="flex items-center justify-between gap-3">
-                      <StepHeader
-                        icon={<ImageIcon className="h-4 w-4" />}
-                        label="Photo"
-                        title="Crop & position"
-                        subtitle="Drag to move · Pinch or slider to zoom"
-                      />
-                      <UploadZone
-                        onPhotoLoaded={handlePhotoLoaded}
-                        compact
-                      />
-                    </div>
+                    {step === "upload" || !photo ? (
+                      <div key="upload-step-container">
+                        <StepHeader
+                          icon={<Camera className="h-4 w-4" />}
+                          label="Step 1"
+                          title="Upload your photo"
+                          subtitle="Drag & drop, browse, or use your camera. HEIC supported."
+                        />
+                        <UploadZone onPhotoLoaded={handlePhotoLoaded} className="mt-4" />
+                      </div>
+                    ) : (
+                      <div key="configure-step-container" className="flex flex-col gap-6">
+                        {/* Photo Editor vs Photo Ready state */}
+                        {!isPhotoConfirmed ? (
+                          <div className="flex flex-col gap-4 rounded-3xl border border-emerald/20 bg-card/60 p-5 shadow-tropical">
+                            <div className="flex items-center justify-between gap-3">
+                              <StepHeader
+                                icon={<ImageIcon className="h-4 w-4" />}
+                                label="Step 1: Photo"
+                                title="Crop & position"
+                                subtitle="Drag to move · Pinch or slider to zoom"
+                              />
+                              <UploadZone
+                                onPhotoLoaded={handlePhotoLoaded}
+                                compact
+                              />
+                            </div>
 
-                    <PhotoCropper
-                      photo={photo}
-                      onCropComplete={handleCropComplete}
+                            <PhotoCropper
+                              photo={photo}
+                              onCropComplete={handleCropComplete}
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => setIsPhotoConfirmed(true)}
+                              className="h-12 w-full rounded-2xl bg-emerald font-semibold text-ivory shadow-tropical transition-all hover:bg-emerald-deep"
+                            >
+                              Confirm Photo & Continue →
+                            </button>
+                          </div>
+                        ) : (
+                          /* ⭐ Photo Ready Compact Card */
+                          <div className="flex items-center justify-between rounded-2xl border border-emerald/25 bg-emerald/10 p-4 shadow-tropical">
+                            <div className="flex items-center gap-3">
+                              <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald text-ivory shadow-sm">
+                                <CheckCircle2 className="h-5 w-5" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-emerald-deep">✓ Photo Ready</p>
+                                <p className="text-xs text-muted-foreground">Cropped & framed perfectly</p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setIsPhotoConfirmed(false)}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald/25 bg-card px-3 py-1.5 text-xs font-semibold text-emerald-deep transition-all hover:bg-emerald/10"
+                            >
+                              <ImageIcon className="h-3.5 w-3.5" />
+                              Change Photo
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Builder Form — SHOWN AFTER PHOTO IS CONFIRMED */}
+                        {isPhotoConfirmed && (
+                          <div className="flex flex-col gap-6">
+                            {mode === "builder-id" && (
+                              <div className="overflow-hidden">
+                                <StepHeader
+                                  icon={<Wand2 className="h-4 w-4" />}
+                                  label="Identity"
+                                  title="Your builder details"
+                                  subtitle="All fields update the live preview instantly."
+                                />
+                                <BuilderForm
+                                  initialName={name}
+                                  initialRole={role}
+                                  initialTitle={builderTitle}
+                                  initialTwitter={twitter}
+                                  onChange={handleFormChange}
+                                  className="mt-4"
+                                />
+                              </div>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="mt-4">
+                              <ActionButtons
+                                isGenerating={isGenerating}
+                                hasGenerated={hasGenerated}
+                                result={lastResult}
+                                onGenerate={handleGenerate}
+                                onDownload={handleDownload}
+                                shareData={{ name, role, builderTitle }}
+                                avatarUrl={avatarUrl}
+                              />
+                            </div>
+
+                            {/* Clear saved data */}
+                            <div className="flex items-center justify-end">
+                              <button
+                                type="button"
+                                onClick={handleResetAll}
+                                className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-coral-deep"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Clear saved data
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+
+                {/* ============ MODE 2: TEAM FRAME MODE (2 OR 3 MEMBER GUIDED WIZARD) ============ */}
+                {mode === "team-frame" && (
+                  <motion.div
+                    key="team-frame-mode"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex flex-col gap-6"
+                  >
+                    <TeamWizard
+                      members={teamMembers}
+                      teamName={teamName}
+                      teamTagline={teamTagline}
+                      college={college}
+                      onChangeMembers={setTeamMembers}
+                      onChangeTeamInfo={({ teamName: tn, teamTagline: tt, college: col }) => {
+                        setTeamName(tn);
+                        setTeamTagline(tt);
+                        setCollege(col);
+                      }}
+                      onGenerate={handleGenerate}
+                      isGenerating={isGenerating}
+                      hasGenerated={hasGenerated}
                     />
 
-                    {/* Mode selector */}
-                    <div className="mt-2">
-                      <StepHeader
-                        icon={<Layers className="h-4 w-4" />}
-                        label="Style"
-                        title="Choose your style"
-                        subtitle="Profile Frame for a circular avatar, Builder ID for a full identity card."
-                      />
-                      <ModeSelector
-                        value={mode}
-                        onChange={handleModeChange}
-                        className="mt-4"
-                      />
-                    </div>
-
-                    {/* Conditional builder form */}
-                    <AnimatePresence>
-                      {mode === "builder-id" && (
-                        <motion.div
-                          key="builder-form"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <StepHeader
-                            icon={<Wand2 className="h-4 w-4" />}
-                            label="Identity"
-                            title="Your builder details"
-                            subtitle="All fields update the preview live."
-                          />
-                          <BuilderForm
-                            initialName={name}
-                            initialRole={role}
-                            initialTitle={builderTitle}
-                            onChange={handleFormChange}
-                            className="mt-4"
-                          />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {/* Reset all */}
                     <div className="flex items-center justify-end">
                       <button
                         type="button"
@@ -404,86 +499,41 @@ export function Studio({ className }: StudioProps) {
                 )}
               </AnimatePresence>
             </div>
-          )}
 
-          {/* RIGHT: live preview / result */}
-          <div className={cn(hasGenerated ? "" : "lg:sticky lg:top-24 lg:self-start")}>
-            <div className="relative">
-              {!hasGenerated && (
+            {/* RIGHT: Live Sticky Preview — Desktop: Right (lg:order-2) | Mobile: Top (order-1) */}
+            <div className="order-1 lg:order-2 lg:sticky lg:top-24 lg:self-start">
+              <div className="relative">
                 <StepHeader
                   icon={<Wand2 className="h-4 w-4" />}
                   label="Live preview"
-                  title="Your builder identity"
+                  title={mode === "team-frame" ? "Your Team Frame" : "Your builder identity"}
                   subtitle="Updates instantly · 1080×1080 retina export"
                 />
-              )}
 
-              {hasGenerated && (
-                <div className="mb-6 text-center">
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="inline-flex items-center gap-2 rounded-full bg-emerald/10 px-4 py-2"
-                  >
-                    <CheckCircle2 className="h-4 w-4 text-emerald" />
-                    <span className="text-sm font-semibold text-emerald-deep">
-                      Your Builder ID is ready
-                    </span>
-                  </motion.div>
+                <div className="mt-4">
+                  <LivePreview
+                    mode={mode}
+                    avatarUrl={avatarUrl}
+                    name={name}
+                    role={role}
+                    builderTitle={builderTitle}
+                    twitter={twitter}
+                    teamName={teamName}
+                    teamTagline={teamTagline}
+                    college={college}
+                    teamMembers={teamMembers}
+                    isGenerating={isGenerating}
+                    renderRef={renderRef}
+                  />
                 </div>
-              )}
 
-              <div className="mt-4">
-                <LivePreview
-                  mode={mode}
-                  avatarUrl={avatarUrl}
-                  name={name}
-                  role={role}
-                  builderTitle={builderTitle}
-                  isGenerating={isGenerating}
-                  renderRef={renderRef}
-                />
-              </div>
-
-              {/* Action buttons */}
-              <div className="mt-6">
-                <ActionButtons
-                  isGenerating={isGenerating}
-                  hasGenerated={hasGenerated}
-                  result={lastResult}
-                  onGenerate={handleGenerate}
-                  onDownload={handleDownload}
-                  shareData={{ name, role, builderTitle }}
-                  avatarUrl={avatarUrl}
-                />
-              </div>
-
-              {/* Helper text */}
-              {!hasGenerated && (
                 <p className="mt-4 text-center text-xs text-muted-foreground">
                   Tap Generate PNG when you're happy with the preview.
                 </p>
-              )}
-
-              {/* Start over button — only after generation */}
-              {hasGenerated && (
-                <div className="mt-6 text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      resetGenerator();
-                      setStep("configure");
-                    }}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-deep transition-colors hover:text-emerald"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Edit details
-                  </button>
-                </div>
-              )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

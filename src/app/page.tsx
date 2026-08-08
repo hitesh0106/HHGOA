@@ -2,58 +2,45 @@
 
 import * as React from "react";
 import { SiteNav } from "@/components/sections/site-nav";
-import { Hero } from "@/components/sections/hero";
 import { Footer } from "@/components/sections/footer";
 import { Studio } from "@/features/studio";
 import { ShareView } from "@/features/share/share-view";
-import { decodeShareData } from "@/lib/share";
+import { decodeShareDataFromUrl } from "@/lib/share";
 
 /**
  * Single-page app with two views:
  *
- * 1. GENERATOR (default) — Hero + Studio (upload → crop → generate → download → share)
- * 2. SHARE VIEW (?share=<encoded>) — Premium showcase page when someone opens a copied link
- *
- * The share param contains base64-encoded builder data (name, role, title).
+ * 1. GENERATOR (default) — Studio (upload → crop → generate → download → share)
+ * 2. SHARE VIEW (?team=Zedda or ?name=Hitesh or ?share=...) — Showcase page
  */
 export default function Home() {
   const [shareData, setShareData] = React.useState<
-    ReturnType<typeof decodeShareData> | null
+    ReturnType<typeof decodeShareDataFromUrl> | null
   >(null);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     const checkShare = () => {
       const params = new URLSearchParams(window.location.search);
-      const share = params.get("share");
-      if (share) {
-        const decoded = decodeShareData(share);
-        if (decoded) {
-          setShareData(decoded);
-          return;
-        }
-      }
-      setShareData(null);
+      const decoded = decodeShareDataFromUrl(params);
+      setShareData(decoded);
     };
     checkShare();
-    // Listen for browser back/forward so the view switches correctly.
     window.addEventListener("popstate", checkShare);
     return () => window.removeEventListener("popstate", checkShare);
   }, []);
 
   const handleBackToGenerator = React.useCallback(() => {
-    // Clear the share param and switch to generator view.
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
-      url.searchParams.delete("share");
+      url.search = "";
       window.history.pushState({}, "", url.toString());
     }
     setShareData(null);
-    // Scroll to top.
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Share view — premium showcase page (no nav, no footer)
+  // Share view — public showcase page
   if (shareData) {
     return (
       <div className="relative min-h-screen bg-background">
@@ -67,7 +54,6 @@ export default function Home() {
     <div className="relative flex min-h-screen flex-col bg-background">
       <SiteNav />
       <main className="flex-1">
-        <Hero />
         <Studio />
       </main>
       <Footer />

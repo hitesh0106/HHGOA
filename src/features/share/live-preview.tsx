@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { Loader2, Users, User } from "lucide-react";
 import { ProfileFrameCard } from "@/components/frames/profile-frame-card";
 import { BuilderIdCard } from "@/components/frames/builder-id-card";
-import type { GeneratorMode } from "@/types";
+import { TeamFrameCard } from "@/components/frames/team-frame-card";
+import type { GeneratorMode, TeamMember } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface LivePreviewProps {
@@ -14,35 +15,38 @@ interface LivePreviewProps {
   name: string;
   role: string;
   builderTitle: string;
+  twitter?: string;
+  // Team Frame properties
+  teamName?: string;
+  teamTagline?: string;
+  college?: string;
+  teamMembers?: TeamMember[];
   isGenerating: boolean;
   /** Forwarded so the parent can hand the node to html-to-image. */
   renderRef?: React.RefObject<HTMLDivElement | null>;
   className?: string;
 }
 
-/**
- * Live preview with TWO render nodes:
- *
- * 1. VISIBLE PREVIEW — scaled down 1080×1080 card with HUD overlays (Live
- *    indicator, resolution badge) for the user to see while editing.
- *
- * 2. HIDDEN EXPORT TARGET — a full-size 1080×1080 node positioned off-screen
- *    (left: -99999px) that contains ONLY the card artwork with ZERO editor
- *    overlays. html-to-image captures THIS node, so the exported PNG is
- *    always a clean poster — never a screenshot of the editor.
- */
 export function LivePreview({
   mode,
   avatarUrl,
   name,
   role,
   builderTitle,
+  twitter = "",
+  teamName = "",
+  teamTagline = "",
+  college = "",
+  teamMembers = [],
   isGenerating,
   renderRef,
   className,
 }: LivePreviewProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [scale, setScale] = React.useState(0.42);
+
+  // For Team Frame mode: allow toggling preview between Combined Team Pass and Individual Member IDs
+  const [activeTeamTab, setActiveTeamTab] = React.useState<"team" | number>("team");
 
   React.useEffect(() => {
     const el = containerRef.current;
@@ -57,19 +61,89 @@ export function LivePreview({
     return () => ro.disconnect();
   }, []);
 
-  const card = mode === "profile-frame" ? (
-    <ProfileFrameCard avatarUrl={avatarUrl} name={name} />
-  ) : (
-    <BuilderIdCard
-      avatarUrl={avatarUrl}
-      name={name}
-      role={role}
-      builderTitle={builderTitle}
-    />
-  );
+  // Determine card node based on mode and active tab
+  let card: React.ReactNode;
+  if (mode === "team-frame") {
+    if (activeTeamTab === "team") {
+      card = (
+        <TeamFrameCard
+          teamName={teamName}
+          teamTagline={teamTagline}
+          college={college}
+          members={teamMembers}
+        />
+      );
+    } else {
+      const m = teamMembers[activeTeamTab as number];
+      card = m ? (
+        <BuilderIdCard
+          avatarUrl={m.avatarUrl || null}
+          name={m.name || `Teammate ${(activeTeamTab as number) + 1}`}
+          role={m.role || "Builder"}
+          builderTitle={m.builderTitle || "AI Architect"}
+          twitter={m.twitter}
+        />
+      ) : (
+        <TeamFrameCard
+          teamName={teamName}
+          teamTagline={teamTagline}
+          college={college}
+          members={teamMembers}
+        />
+      );
+    }
+  } else if (mode === "profile-frame") {
+    card = <ProfileFrameCard avatarUrl={avatarUrl} name={name} />;
+  } else {
+    card = (
+      <BuilderIdCard
+        avatarUrl={avatarUrl}
+        name={name}
+        role={role}
+        builderTitle={builderTitle}
+        twitter={twitter}
+      />
+    );
+  }
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative flex flex-col gap-3", className)}>
+      {/* Team Pass Preview Switcher (Combined vs Teammate 1 / 2 / 3 Individual IDs) */}
+      {mode === "team-frame" && teamMembers.length > 0 && (
+        <div className="mx-auto flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-emerald/20 bg-card/80 p-1.5 shadow-sm">
+          <button
+            type="button"
+            onClick={() => setActiveTeamTab("team")}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all",
+              activeTeamTab === "team"
+                ? "bg-emerald text-ivory shadow-sm"
+                : "text-muted-foreground hover:bg-emerald/10 hover:text-emerald-deep"
+            )}
+          >
+            <Users className="h-3.5 w-3.5 text-gold" />
+            Team Pass
+          </button>
+
+          {teamMembers.map((m, idx) => (
+            <button
+              key={m.id || idx}
+              type="button"
+              onClick={() => setActiveTeamTab(idx)}
+              className={cn(
+                "inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-bold transition-all",
+                activeTeamTab === idx
+                  ? "bg-emerald text-ivory shadow-sm"
+                  : "text-muted-foreground hover:bg-emerald/10 hover:text-emerald-deep"
+              )}
+            >
+              <User className="h-3 w-3" />
+              {m.name ? m.name.split(" ")[0] : `M${idx + 1}`} ID
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ============ VISIBLE PREVIEW (with editor HUD) ============ */}
       <div
         ref={containerRef}
@@ -90,9 +164,6 @@ export function LivePreview({
             }}
             className="absolute left-0 top-0"
           >
-            {/* NOTE: This inner div does NOT carry renderRef. The visible
-                preview is for the user only — it has HUD overlays that must
-                never end up in the exported PNG. */}
             {card}
           </div>
 
@@ -152,11 +223,7 @@ export function LivePreview({
         </AnimatePresence>
       </div>
 
-      {/* ============ HIDDEN EXPORT TARGET (clean, no overlays) ============
-          This is what html-to-image captures. It is laid out at the full
-          1080×1080 native resolution and positioned off-screen so it never
-          interferes with the visible layout. It contains ONLY the card
-          artwork — no HUD, no borders, no shadows, no editor controls. */}
+      {/* ============ HIDDEN EXPORT TARGET (clean, no overlays) ============ */}
       <div
         aria-hidden="true"
         style={{

@@ -53,11 +53,12 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/hh-logo.png", type: "image/png" },
+      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.png", type: "image/png" },
     ],
-    apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
+    shortcut: ["/hh-logo.png"],
+    apple: [{ url: "/hh-logo.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     title: "HH Goa 2026 — Builder Identity Generator",
@@ -142,6 +143,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/hh-logo.png" type="image/png" />
+        <link rel="shortcut icon" href="/hh-logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/hh-logo.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

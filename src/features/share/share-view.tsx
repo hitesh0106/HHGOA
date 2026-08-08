@@ -6,18 +6,25 @@ import { toast } from "sonner";
 import {
   Download,
   Twitter,
-  Link2,
-  Check,
   Sparkles,
+  Users,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BuilderIdCard } from "@/components/frames/builder-id-card";
+import { TeamFrameCard } from "@/components/frames/team-frame-card";
 import { useImageGenerator } from "@/hooks/use-image-generator";
 import { APP_CONFIG, buildTwitterShareUrl, MOTION } from "@/constants";
 import { cn } from "@/lib/utils";
 import { FloatingDecorations } from "@/components/decor/floating-decorations";
-import { getAvatarForShare } from "@/lib/share";
+import {
+  getAvatarForShare,
+  getTeamAvatarsForShare,
+  getAvatarForShareAsync,
+  getTeamAvatarsForShareAsync,
+} from "@/lib/share";
 import type { ShareData } from "@/lib/share";
+import type { TeamMember } from "@/types";
 
 interface ShareViewProps {
   data: ShareData;
@@ -25,45 +32,100 @@ interface ShareViewProps {
   onBackToGenerator: () => void;
 }
 
+type ShareTab = "team" | "m-0" | "m-1" | "m-2";
+
 /**
- * Premium public Builder ID showcase page — 2-column layout.
- *
- * LEFT (60%): Large Builder ID card with floating shadow.
- * RIGHT (40%): Badge → Name → Stack → Title → Description → Event info →
- *              Actions → Divider → CTA.
- *
- * NO top nav, NO footer, NO back button. The focus stays on the Builder ID.
- * Mobile-first: stacks vertically on small screens.
+ * Premium public Builder ID & Team Frame showcase page — 2-column layout.
+ * Includes:
+ *   · Tab Switcher Bar for Team Frame (Team Pass vs M1 ID, M2 ID, M3 ID)
+ *   · Download PNG & Share to X actions (Copy Link button removed as requested)
  */
 export function ShareView({ data, onBackToGenerator, className }: ShareViewProps) {
   const renderRef = React.useRef<HTMLDivElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [scale, setScale] = React.useState(0.46);
-  const [copied, setCopied] = React.useState(false);
   const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
+  const [teamAvatars, setTeamAvatars] = React.useState<(string | null)[]>([]);
+  const [activeTab, setActiveTab] = React.useState<ShareTab>("team");
+
   const {
     isGenerating,
     generate,
     download,
   } = useImageGenerator({ pixelRatio: 1 });
 
+  const isTeam = data.m === "team-frame";
   const name = data.n || "Builder";
   const role = data.r || "Builder";
   const builderTitle = data.t || "Builder of Tomorrow";
 
-  // Retrieve the stored avatar from localStorage (if the share link was
-  // opened on the same browser where it was generated).
+  const teamName = data.tn || "Team Pass";
+  const teamTagline = data.tt || "";
+  const college = data.c || "";
+
+  const members: TeamMember[] = (data.tm || []).map((m, i) => ({
+    id: `m-${i}`,
+    name: m.n || `Teammate ${i + 1}`,
+    role: m.r || "Builder",
+    builderTitle: m.t || "AI Architect",
+    avatarUrl: teamAvatars[i] || null,
+  }));
+
+  // Retrieve stored avatars from IndexedDB & localStorage
   React.useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const encoded = params.get("share");
-    if (encoded) {
-      const stored = getAvatarForShare(encoded);
-      if (stored) setAvatarUrl(stored);
-    }
-  }, []);
+    let cancelled = false;
 
-  // Measure container and compute scale for the visible card.
+    async function loadAvatars() {
+      const params = new URLSearchParams(window.location.search);
+      const encoded = params.get("share");
+      const team = params.get("team") || params.get("tn") || teamName;
+      const builderName = params.get("name") || params.get("n") || name;
+
+      // 1. Team avatars retrieval
+      let storedTeamAvatars: (string | null)[] = [];
+      if (team) {
+        storedTeamAvatars = await getTeamAvatarsForShareAsync(`team:${team}`);
+      }
+      if ((!storedTeamAvatars || storedTeamAvatars.length === 0) && encoded) {
+        storedTeamAvatars = await getTeamAvatarsForShareAsync(encoded);
+      }
+      if (!storedTeamAvatars || storedTeamAvatars.length === 0) {
+        storedTeamAvatars = await getTeamAvatarsForShareAsync("last-team-avatars");
+      }
+      if (!storedTeamAvatars || storedTeamAvatars.length === 0) {
+        storedTeamAvatars = getTeamAvatarsForShare(encoded || "");
+      }
+      if (!cancelled && storedTeamAvatars && storedTeamAvatars.length > 0) {
+        setTeamAvatars(storedTeamAvatars);
+      }
+
+      // 2. Single builder avatar retrieval
+      let storedAvatar: string | null = null;
+      if (builderName) {
+        storedAvatar = await getAvatarForShareAsync(`builder:${builderName}`);
+      }
+      if (!storedAvatar && encoded) {
+        storedAvatar = await getAvatarForShareAsync(encoded);
+      }
+      if (!storedAvatar) {
+        storedAvatar = await getAvatarForShareAsync("last-avatar");
+      }
+      if (!storedAvatar) {
+        storedAvatar = getAvatarForShare(encoded || "");
+      }
+      if (!cancelled && storedAvatar) {
+        setAvatarUrl(storedAvatar);
+      }
+    }
+
+    void loadAvatars();
+    return () => {
+      cancelled = true;
+    };
+  }, [teamName, name]);
+
+  // Measure container and compute scale for visible card.
   React.useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -77,42 +139,76 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
     return () => ro.disconnect();
   }, []);
 
-  // Auto-generate the PNG on mount so the Download button is ready.
+  // Auto-generate the PNG on mount so Download button is ready.
   React.useEffect(() => {
     const t = setTimeout(() => {
       void generate(renderRef.current);
     }, 400);
     return () => clearTimeout(t);
-  }, [generate]);
+  }, [generate, activeTab]);
 
   const handleDownload = React.useCallback(async () => {
     const result = await generate(renderRef.current);
     if (result) {
       await download(result);
       toast.success("Download started", {
-        description: `Saved as ${APP_CONFIG.downloadFileName}`,
+        description: `Saved as ${isTeam && activeTab === "team" ? "hh-goa-team-pass.png" : APP_CONFIG.downloadFileName}`,
       });
     } else {
       toast.error("Could not generate the image. Please try again.");
     }
-  }, [generate, download]);
+  }, [generate, download, isTeam, activeTab]);
 
   const handleShare = React.useCallback(() => {
-    const url = buildTwitterShareUrl(APP_CONFIG.shareText);
+    const text = isTeam
+      ? `🚀 Excited to build at HH Goa 2026! Just created our Team Pass for ${teamName}.\n\n#FrameInGoa`
+      : APP_CONFIG.shareText;
+    const url = buildTwitterShareUrl(text);
     window.open(url, "_blank", "noopener,noreferrer,width=620,height=540");
     toast.success("Opened X — post with #FrameInGoa!");
-  }, []);
+  }, [isTeam, teamName]);
 
-  const handleCopyLink = React.useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      toast.success("Link copied to clipboard!");
-      setTimeout(() => setCopied(false), 2500);
-    } catch {
-      toast.error("Could not copy. Copy the URL from your browser's address bar.");
+  // Determine active displayed node (Team Pass or Teammate 1/2/3 individual Builder ID)
+  const getActiveCardNode = () => {
+    if (!isTeam) {
+      return (
+        <BuilderIdCard
+          avatarUrl={avatarUrl}
+          name={name}
+          role={role}
+          builderTitle={builderTitle}
+        />
+      );
     }
-  }, []);
+
+    if (activeTab === "team") {
+      return (
+        <TeamFrameCard
+          teamName={teamName}
+          teamTagline={teamTagline}
+          college={college}
+          members={members}
+        />
+      );
+    }
+
+    const memberIndex = activeTab === "m-0" ? 0 : activeTab === "m-1" ? 1 : 2;
+    const targetMember = members[memberIndex] || {
+      name: `Teammate ${memberIndex + 1}`,
+      role: "Builder",
+      builderTitle: "AI Architect",
+      avatarUrl: null,
+    };
+
+    return (
+      <BuilderIdCard
+        avatarUrl={targetMember.avatarUrl || null}
+        name={targetMember.name}
+        role={targetMember.role}
+        builderTitle={targetMember.builderTitle}
+      />
+    );
+  };
 
   return (
     <div
@@ -125,17 +221,56 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
 
       <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center px-5 py-12 sm:px-8 sm:py-16 lg:py-20">
         <div className="grid w-full grid-cols-1 items-center gap-10 lg:grid-cols-[60%_40%] lg:gap-16">
-          {/* ============ LEFT COLUMN (60%) — Large Builder ID card ============ */}
+          
+          {/* ============ LEFT COLUMN (60%) — Large Card Poster + Tab Switcher ============ */}
           <motion.div
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.7, ease: MOTION.ease }}
-            className="mx-auto w-full max-w-[560px]"
+            className="mx-auto flex w-full max-w-[560px] flex-col gap-4"
           >
+            {/* 1. Requirement 1: Tab Switcher Bar in Public Share View for Team Frame */}
+            {isTeam && (
+              <div className="flex items-center justify-center gap-2 rounded-full border-2 border-[#1c3529] bg-[#FCF9F2] p-1.5 shadow-[3px_3px_0px_#1c3529]">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("team")}
+                  className={cn(
+                    "flex items-center gap-2 rounded-full px-4 py-2 font-mono text-xs font-black uppercase transition-all",
+                    activeTab === "team"
+                      ? "bg-[#1c3529] text-[#d9a726] shadow-sm"
+                      : "text-[#1c3529] hover:bg-[#1c3529]/10"
+                  )}
+                >
+                  <Users className="h-4 w-4" />
+                  <span>Team Pass</span>
+                </button>
+
+                {members.map((m, idx) => {
+                  const tabKey: ShareTab = idx === 0 ? "m-0" : idx === 1 ? "m-1" : "m-2";
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setActiveTab(tabKey)}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-full px-3.5 py-2 font-mono text-xs font-black uppercase transition-all",
+                        activeTab === tabKey
+                          ? "bg-[#1c3529] text-[#FCF9F2] shadow-sm"
+                          : "text-[#1c3529] hover:bg-[#1c3529]/10"
+                      )}
+                    >
+                      <UserCheck className="h-3.5 w-3.5" />
+                      <span>M{idx + 1} ID</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             <div
               ref={containerRef}
-              className="relative aspect-square w-full overflow-hidden rounded-[2rem] shadow-tropical-lg"
-              style={{ boxShadow: "0 30px 80px rgba(15, 81, 50, 0.25), 0 12px 32px rgba(15, 81, 50, 0.15)" }}
+              className="relative aspect-square w-full overflow-hidden rounded-[2rem] border-3 border-[#1c3529] shadow-[8px_8px_0px_#1c3529]"
             >
               <div
                 style={{
@@ -146,83 +281,92 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
                 }}
                 className="absolute left-0 top-0"
               >
-                <BuilderIdCard
-                  avatarUrl={avatarUrl}
-                  name={name}
-                  role={role}
-                  builderTitle={builderTitle}
-                />
+                {getActiveCardNode()}
               </div>
             </div>
           </motion.div>
 
-          {/* ============ RIGHT COLUMN (40%) — Profile details ============ */}
+          {/* ============ RIGHT COLUMN (40%) — Details ============ */}
           <motion.div
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: MOTION.ease, delay: 0.15 }}
             className="flex flex-col gap-6"
           >
-            {/* 1. Small badge */}
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald/20 bg-card/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-deep backdrop-blur">
-              <Sparkles className="h-3 w-3 text-gold" />
-              <span>BUILDER ID CARD</span>
-              <span className="text-emerald/40">•</span>
-              <span className="text-gold">#{APP_CONFIG.hashtag}</span>
+            {/* Badge */}
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-[#1c3529] bg-[#FCF9F2] px-3.5 py-1.5 text-[11px] font-mono font-black uppercase tracking-[0.18em] text-[#1c3529] shadow-[2px_2px_0px_#1c3529]">
+              <Sparkles className="h-3.5 w-3.5 text-[#d9a726]" />
+              <span>{isTeam ? "OFFICIAL TEAM PASS" : "SOLO BUILDER PASS"}</span>
+              <span className="text-[#1c3529]/40">•</span>
+              <span className="text-[#e04b77]">#{APP_CONFIG.hashtag}</span>
             </div>
 
-            {/* 2. Large Builder Name */}
+            {/* Title / Name */}
             <h1
-              className="font-serif text-4xl leading-[1.05] tracking-tight text-emerald-deep sm:text-5xl"
-              style={{ fontWeight: 600 }}
+              className="font-serif text-4xl leading-[1.05] tracking-tight text-[#1c3529] sm:text-5xl font-black"
             >
-              {name}
+              {isTeam ? teamName : name}
             </h1>
 
-            {/* 3. Stack / Role */}
-            <p className="text-sm font-medium uppercase tracking-[0.16em] text-muted-foreground">
-              {role}
+            {/* Subtext */}
+            <p className="font-mono text-sm font-bold uppercase tracking-[0.16em] text-[#e04b77]">
+              {isTeam ? (college || teamTagline || "HH Goa 2026 Team") : role}
             </p>
 
-            {/* 4. Builder Title */}
-            <p className="font-serif text-2xl text-gradient-tropical sm:text-3xl">
-              {builderTitle}
+            {!isTeam && (
+              <p className="font-serif text-2xl text-[#1c3529] sm:text-3xl font-bold">
+                ⚡ {builderTitle}
+              </p>
+            )}
+
+            {/* Members summary if team */}
+            {isTeam && members.length > 0 && (
+              <div className="flex flex-wrap gap-2 my-1">
+                {members.map((m, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[#1c3529] bg-[#FCF9F2] px-3 py-1 font-mono text-xs font-bold text-[#1c3529]"
+                  >
+                    <Users className="h-3 w-3 text-[#d9a726]" />
+                    {m.name || `Teammate ${idx + 1}`} ({m.role || "Builder"})
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Short description */}
+            <p className="text-base leading-relaxed text-[#1c3529]/80 font-medium">
+              {isTeam
+                ? `${teamName} just created their official HH Goa 2026 Team Pass!`
+                : `${name} just built their HH Goa 2026 Builder ID.`}
             </p>
 
-            {/* 5. Short description */}
-            <p className="text-base leading-relaxed text-muted-foreground">
-              {name} just built their HH Goa 2026 Builder ID.
-            </p>
-
-            {/* 6. Event information */}
-            <div className="flex items-center gap-2 text-sm text-emerald-deep/70">
-              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-gold" />
-              <span className="font-medium">
-                See you in Goa • 28–31 Oct 2026
-              </span>
+            {/* Event information */}
+            <div className="flex items-center gap-2 font-mono text-sm text-[#1c3529] font-bold">
+              <span className="inline-flex h-2 w-2 rounded-full bg-[#d9a726]" />
+              <span>See you in Goa • 28–31 Oct 2026</span>
             </div>
 
-            {/* 7. Action buttons — horizontal row */}
+            {/* Action buttons — Copy Link button removed as requested */}
             <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              {/* Share to X — primary */}
               <Button
                 type="button"
                 onClick={handleShare}
-                className="h-12 flex-1 rounded-2xl bg-gradient-to-br from-emerald to-emerald-deep px-6 text-sm font-semibold text-ivory shadow-tropical-lg transition-all hover:shadow-tropical-lg sm:flex-none"
+                className="h-12 flex-1 rounded-xl border-2 border-[#1c3529] bg-[#1c3529] px-6 font-mono text-sm font-bold uppercase text-[#FCF9F2] shadow-[3px_3px_0px_#d9a726] hover:bg-[#1c3529]/90 sm:flex-none"
               >
-                <Twitter className="mr-2 h-4 w-4" />
+                <Twitter className="mr-2 h-4 w-4 text-[#d9a726]" />
                 Share to X
               </Button>
-              {/* Download PNG — secondary */}
+
               <Button
                 type="button"
                 onClick={handleDownload}
                 disabled={isGenerating}
-                className="h-12 flex-1 rounded-2xl bg-card px-6 text-sm font-semibold text-emerald-deep shadow-tropical transition-all hover:bg-emerald/5 disabled:opacity-60 sm:flex-none"
+                className="h-12 flex-1 rounded-xl border-2 border-[#1c3529] bg-[#d9a726] px-6 font-mono text-sm font-bold uppercase text-[#1c3529] shadow-[3px_3px_0px_#1c3529] hover:bg-[#d9a726]/90 disabled:opacity-60 sm:flex-none"
               >
                 {isGenerating ? (
                   <>
-                    <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-emerald/30 border-t-emerald" />
+                    <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#1c3529]/30 border-t-[#1c3529]" />
                     Preparing…
                   </>
                 ) : (
@@ -232,52 +376,33 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
                   </>
                 )}
               </Button>
-              {/* Copy Link — outline */}
-              <Button
-                type="button"
-                onClick={handleCopyLink}
-                variant="outline"
-                className="h-12 flex-1 rounded-2xl border-2 border-emerald/25 bg-transparent px-6 text-sm font-semibold text-emerald-deep transition-all hover:border-emerald/45 hover:bg-emerald/5 sm:flex-none"
-              >
-                {copied ? (
-                  <>
-                    <Check className="mr-2 h-4 w-4 text-emerald" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Link2 className="mr-2 h-4 w-4" />
-                    Copy Link
-                  </>
-                )}
-              </Button>
             </div>
 
-            {/* 8. Divider */}
-            <div className="divider-luxe my-2" />
+            {/* Divider */}
+            <div className="border-t-2 border-[#1c3529]/10 my-2" />
 
-            {/* 9. CTA */}
+            {/* CTA */}
             <div>
-              <p className="font-serif text-xl text-emerald-deep">
-                Want your own Builder ID?
+              <p className="font-serif text-xl font-bold text-[#1c3529]">
+                {isTeam ? "Want your own Team Frame?" : "Want your own Builder ID?"}
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Upload a photo and generate one in seconds.
+              <p className="mt-1 text-sm text-[#1c3529]/70 font-medium">
+                Generate your official HH Goa 2026 pass in seconds.
               </p>
               <Button
                 type="button"
                 onClick={onBackToGenerator}
-                className="mt-4 h-11 rounded-full bg-gradient-to-br from-emerald to-emerald-deep px-6 text-sm font-semibold text-ivory shadow-tropical"
+                className="mt-4 h-12 rounded-xl border-2 border-[#1c3529] bg-[#e04b77] px-6 font-mono text-sm font-bold uppercase text-[#FCF9F2] shadow-[4px_4px_0px_#1c3529] hover:bg-[#e04b77]/90"
               >
-                <Sparkles className="mr-2 h-4 w-4" />
-                Create Your Own Builder ID
+                <Sparkles className="mr-2 h-4 w-4 text-[#d9a726]" />
+                {isTeam ? "Create Your Own Team Frame" : "Create Your Own Builder ID"}
               </Button>
             </div>
           </motion.div>
         </div>
       </div>
 
-      {/* ============ HIDDEN EXPORT TARGET (clean, no overlays) ============ */}
+      {/* ============ HIDDEN EXPORT TARGET ============ */}
       <div
         aria-hidden="true"
         style={{
@@ -291,12 +416,7 @@ export function ShareView({ data, onBackToGenerator, className }: ShareViewProps
         }}
       >
         <div ref={renderRef} className="relative">
-          <BuilderIdCard
-            avatarUrl={avatarUrl}
-            name={name}
-            role={role}
-            builderTitle={builderTitle}
-          />
+          {getActiveCardNode()}
         </div>
       </div>
     </div>

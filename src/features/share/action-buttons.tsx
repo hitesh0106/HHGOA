@@ -10,14 +10,19 @@ import {
   Sparkles,
   RotateCcw,
   Link2,
-  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { APP_CONFIG, buildTwitterShareUrl } from "@/constants";
-import { buildShareUrl, encodeShareData, storeAvatarForShare } from "@/lib/share";
+import {
+  buildShareUrl,
+  encodeShareData,
+  storeAvatarForShare,
+  storeTeamAvatarsForShare,
+} from "@/lib/share";
+import type { ShareData } from "@/lib/share";
 import { cn } from "@/lib/utils";
-import type { GenerateResult } from "@/types";
+import type { GenerateResult, GeneratorMode, TeamMember } from "@/types";
 
 interface ActionButtonsProps {
   isGenerating: boolean;
@@ -25,69 +30,109 @@ interface ActionButtonsProps {
   result: GenerateResult | null;
   onGenerate: () => void;
   onDownload: () => void;
-  /** Builder data for the Copy Link feature. */
+  mode?: GeneratorMode;
   shareData?: { name: string; role: string; builderTitle: string };
-  /** Cropped avatar data URL — stored in localStorage so the share link
-   * shows the photo when opened in another tab on the same browser. */
+  teamName?: string;
+  teamTagline?: string;
+  college?: string;
+  teamMembers?: TeamMember[];
   avatarUrl?: string | null;
   className?: string;
 }
 
-/**
- * Action cluster: Generate → Download + Share to X + Copy Link + Regenerate.
- */
 export function ActionButtons({
   isGenerating,
   hasGenerated,
   result,
   onGenerate,
   onDownload,
+  mode = "builder-id",
   shareData,
+  teamName,
+  teamTagline,
+  college,
+  teamMembers,
   avatarUrl,
   className,
 }: ActionButtonsProps) {
   const [copied, setCopied] = React.useState(false);
 
+  // Synchronize avatars to localStorage as soon as available
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (mode === "team-frame" && teamMembers && teamMembers.length > 0) {
+      const avatars = teamMembers.map((m) => m.avatarUrl || null);
+      if (avatars.some((a) => a !== null)) {
+        storeTeamAvatarsForShare(`team:${teamName || "pass"}`, avatars);
+        storeTeamAvatarsForShare("last-team-avatars", avatars);
+      }
+    } else if (avatarUrl) {
+      storeAvatarForShare(`builder:${shareData?.name || "builder"}`, avatarUrl);
+      storeAvatarForShare("last-avatar", avatarUrl);
+    }
+  }, [mode, teamName, teamMembers, avatarUrl, shareData]);
+
   const handleShare = React.useCallback(() => {
-    const url = buildTwitterShareUrl(APP_CONFIG.shareText);
+    const text =
+      mode === "team-frame"
+        ? `🚀 Excited to build at HH Goa 2026! Just created our Team Pass for ${teamName || "our team"}.\n\n#FrameInGoa`
+        : APP_CONFIG.shareText;
+    const url = buildTwitterShareUrl(text);
     window.open(url, "_blank", "noopener,noreferrer,width=620,height=540");
-    toast.success("Opened X — paste your PNG and post!", {
-      description: "Tip: attach the hh-goa-builder-card.png you just downloaded.",
-    });
-  }, []);
+    toast.success("Opened X — post with #FrameInGoa!");
+  }, [mode, teamName]);
 
   const handleCopyLink = React.useCallback(async () => {
-    if (!shareData) {
-      toast.error("Fill in your name and role first.");
-      return;
+    let payload: ShareData;
+
+    if (mode === "team-frame") {
+      payload = {
+        m: "team-frame",
+        tn: teamName || "Team Pass",
+        tt: teamTagline || "",
+        c: college || "",
+        tm: (teamMembers || []).map((m) => ({
+          n: m.name || "",
+          r: m.role || "",
+          t: m.builderTitle || "",
+        })),
+      };
+    } else {
+      payload = {
+        m: mode,
+        n: shareData?.name || "",
+        r: shareData?.role || "",
+        t: shareData?.builderTitle || "",
+      };
     }
-    const encoded = encodeShareData({
-      n: shareData.name,
-      r: shareData.role,
-      t: shareData.builderTitle,
-    });
-    // Store the avatar in localStorage so the share link shows the photo
-    // when opened in another tab on the same browser.
-    if (avatarUrl) {
+
+    const encoded = encodeShareData(payload);
+
+    if (mode === "team-frame") {
+      const avatars = (teamMembers || []).map((m) => m.avatarUrl || null);
+      storeTeamAvatarsForShare(encoded, avatars);
+      storeTeamAvatarsForShare(`team:${teamName || "pass"}`, avatars);
+      storeTeamAvatarsForShare("last-team-avatars", avatars);
+    } else if (avatarUrl) {
       storeAvatarForShare(encoded, avatarUrl);
+      storeAvatarForShare(`builder:${shareData?.name || "builder"}`, avatarUrl);
+      storeAvatarForShare("last-avatar", avatarUrl);
     }
-    const url = buildShareUrl({
-      n: shareData.name,
-      r: shareData.role,
-      t: shareData.builderTitle,
-    });
+
+    const url = buildShareUrl(payload);
+
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       toast.success("Share link copied!", {
-        description: "Open it in a new tab — your photo will appear.",
+        description: "Open it in a new tab to see your official pass.",
       });
       setTimeout(() => setCopied(false), 2500);
     } catch {
       window.open(url, "_blank", "noopener,noreferrer");
-      toast.info("Opened share link in a new tab — copy the URL to share.");
+      toast.info("Opened share link in a new tab.");
     }
-  }, [shareData, avatarUrl]);
+  }, [mode, shareData, teamName, teamTagline, college, teamMembers, avatarUrl]);
 
   return (
     <div className={cn("flex flex-col gap-3 sm:flex-row sm:flex-wrap", className)}>
@@ -98,103 +143,84 @@ export function ActionButtons({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="w-full sm:w-auto"
+            className="w-full"
           >
             <Button
               type="button"
               onClick={onGenerate}
               disabled={isGenerating}
-              className="group relative h-14 w-full overflow-hidden rounded-2xl bg-gradient-to-br from-emerald to-emerald-deep px-8 text-base font-semibold text-ivory shadow-tropical-lg transition-all hover:shadow-tropical-lg disabled:cursor-not-allowed sm:w-auto"
+              className="group relative h-13 w-full overflow-hidden rounded-xl border-2 border-[#1c3529] bg-[#1c3529] px-8 font-mono text-base font-bold text-[#f3f6f1] shadow-[4px_4px_0px_#d9a726] transition-all hover:bg-[#12241b]"
             >
-              <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                <span
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "radial-gradient(circle at var(--mx, 50%) var(--my, 50%), oklch(0.83 0.16 85 / 0.35) 0%, transparent 60%)",
-                  }}
-                />
-              </span>
               {isGenerating ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Generating…
+                  Generating PNG…
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-5 w-5 transition-transform group-hover:rotate-12" />
-                  Generate PNG
+                  <Sparkles className="mr-2 h-5 w-5 text-[#d9a726] transition-transform group-hover:rotate-12" />
+                  {mode === "team-frame" ? "Generate Team PNG 🎉" : "Generate PNG 🎉"}
                 </>
               )}
             </Button>
           </motion.div>
         ) : (
           <motion.div
-            key="download"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap"
+            key="generated-actions"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap"
           >
             <Button
               type="button"
               onClick={onDownload}
-              className="group relative h-14 flex-1 overflow-hidden rounded-2xl bg-gradient-to-br from-emerald to-emerald-deep px-8 text-base font-semibold text-ivory shadow-tropical-lg transition-all hover:shadow-tropical-lg sm:flex-none"
+              className="h-12 flex-1 rounded-xl border-2 border-[#1c3529] bg-[#d9a726] px-6 font-mono text-sm font-bold text-[#1c3529] shadow-[4px_4px_0px_#1c3529] hover:bg-[#b58617]"
             >
-              <Download className="mr-2 h-5 w-5 transition-transform group-hover:translate-y-0.5" />
+              <Download className="mr-2 h-4 w-4" />
               Download PNG
             </Button>
+
             <Button
               type="button"
               onClick={handleShare}
-              variant="outline"
-              className="group relative h-14 flex-1 overflow-hidden rounded-2xl border-2 border-emerald/25 bg-card px-8 text-base font-semibold text-emerald-deep transition-all hover:border-emerald/45 hover:bg-emerald/5 sm:flex-none"
+              className="h-12 flex-1 rounded-xl border-2 border-[#1c3529] bg-[#e04b77] px-6 font-mono text-sm font-bold text-white shadow-[4px_4px_0px_#1c3529] hover:bg-[#c0325e]"
             >
-              <Twitter className="mr-2 h-5 w-5 transition-transform group-hover:-rotate-6" />
+              <Twitter className="mr-2 h-4 w-4" />
               Share to X
             </Button>
+
             <Button
               type="button"
               onClick={handleCopyLink}
               variant="outline"
-              className="group relative h-14 flex-1 overflow-hidden rounded-2xl border-2 border-emerald/25 bg-card px-6 text-base font-semibold text-emerald-deep transition-all hover:border-emerald/45 hover:bg-emerald/5 sm:flex-none"
+              className="h-12 flex-1 rounded-xl border-2 border-[#1c3529] bg-[#d4dbcf] px-6 font-mono text-sm font-bold text-[#1c3529] shadow-[4px_4px_0px_#1c3529] hover:bg-[#cad2c6]"
             >
               {copied ? (
                 <>
-                  <Check className="mr-2 h-5 w-5 text-emerald" />
+                  <Check className="mr-2 h-4 w-4 text-[#1c3529]" />
                   Copied!
                 </>
               ) : (
                 <>
-                  <Link2 className="mr-2 h-5 w-5 transition-transform group-hover:scale-110" />
+                  <Link2 className="mr-2 h-4 w-4" />
                   Copy Link
                 </>
               )}
             </Button>
+
             <Button
               type="button"
               onClick={onGenerate}
               variant="ghost"
-              className="h-14 rounded-2xl text-emerald-deep hover:bg-emerald/10 sm:px-4"
-              aria-label="Regenerate image"
-              title="Regenerate"
+              disabled={isGenerating}
+              className="h-12 rounded-xl border-2 border-transparent font-mono text-xs font-bold text-[#1c3529] hover:bg-[#cad2c6] sm:w-auto"
             >
-              <RotateCcw className="h-5 w-5" />
+              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+              Regenerate
             </Button>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {hasGenerated && result && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex items-center gap-2 self-center rounded-full bg-emerald/10 px-3 py-1.5 text-xs font-medium text-emerald-deep"
-        >
-          <Check className="h-3.5 w-3.5 text-emerald" />
-          {result.width}×{result.height} PNG · {result.durationMs} ms
-        </motion.div>
-      )}
     </div>
   );
 }
