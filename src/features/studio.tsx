@@ -199,7 +199,7 @@ export function Studio({ className }: StudioProps) {
   }, [clearAll, resetGenerator]);
 
   return (
-    <section id="studio" className={cn("relative pt-8 pb-12 sm:pt-10 sm:pb-16 flex-1 flex flex-col justify-between", className)}>
+    <section id="studio" className={cn("relative overflow-hidden pt-6 pb-8 sm:pt-8 sm:pb-12 flex-1 flex flex-col justify-between", className)}>
       <FloatingDecorations />
 
       <div className="relative mx-auto max-w-6xl px-5 sm:px-8">
