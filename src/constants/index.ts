@@ -29,12 +29,9 @@ export const APP_CONFIG = {
   twitterHandle: "hhgoa",
 } as const;
 
-/** Twitter share URL with prefilled text. */
+/** Twitter / X share URL with prefilled text. */
 export function buildTwitterShareUrl(text: string): string {
-  const params = new URLSearchParams({
-    text,
-  });
-  return `https://twitter.com/intent/tweet?${params.toString()}`;
+  return `https://x.com/intent/tweet?text=${encodeURIComponent(text)}`;
 }
 
 /**
