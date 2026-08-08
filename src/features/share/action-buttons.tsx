@@ -75,7 +75,7 @@ export function ActionButtons({
   const handleShare = React.useCallback(() => {
     const text =
       mode === "team-frame"
-        ? `🚀 Excited to build at HH Goa 2026! Just created our Team Pass for ${teamName || "our team"}.\n\n#FrameInGoa`
+        ? `🚀 Excited to build at HH Goa 2026!\n\nJust created our Team Pass for ${teamName || "our team"}.\n\nHH Goa 2026, let's build something worth remembering. 🌴⚡\n\n#FrameInGoa #HHGoa2026`
         : APP_CONFIG.shareText;
     const url = buildTwitterShareUrl(text);
     window.open(url, "_blank", "noopener,noreferrer,width=620,height=540");

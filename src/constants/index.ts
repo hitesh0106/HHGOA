@@ -8,7 +8,7 @@ export const APP_CONFIG = {
   edition: "Goa · 2026",
   hashtag: "FrameInGoa",
   shareText:
-    "🚀 Excited to build at HH Goa 2026!\n\nJust created my Builder Identity.\n\n#FrameInGoa",
+    "🚀 Excited to build at HH Goa 2026!\n\nJust created my Builder Identity.\n\nHH Goa 2026, let's build something worth remembering. 🌴⚡\n\n#FrameInGoa #HHGoa2026",
   downloadFileName: "hh-goa-builder-card.png",
   outputSize: 1080,
   /** Maximum upload size in bytes (12 MB). */
