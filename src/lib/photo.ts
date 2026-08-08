@@ -72,16 +72,14 @@ export function validatePhotoFile(file: File): string | null {
 }
 
 /**
- * Convert HEIC/HEIF files to JPEG using heic2any.
+ * Convert HEIC/HEIF files to JPEG using heic2any with ArrayBuffer.
  * Returns a new File object with the JPEG payload.
  */
 export async function convertHeicToJpeg(file: File): Promise<File> {
   try {
     const heic2any = await getHeic2Any();
-    // Ensure blob has explicit type image/heic for heic2any
-    const blobToConvert = file.type && file.type.includes("heic")
-      ? file
-      : new Blob([file], { type: "image/heic" });
+    const arrayBuffer = await file.arrayBuffer();
+    const blobToConvert = new Blob([arrayBuffer], { type: "image/heic" });
 
     const result = await heic2any({
       blob: blobToConvert,
@@ -92,21 +90,18 @@ export async function convertHeicToJpeg(file: File): Promise<File> {
     const newName = file.name.replace(/\.(heic|heif)$/i, ".jpg");
     return new File([blob], newName, { type: "image/jpeg" });
   } catch (err) {
-    console.error("[heic2any] conversion failed", err);
+    console.warn("[heic2any] conversion failed", err);
     throw new Error(
-      "We could not convert that HEIC file. Try exporting as JPG from your Photos app and re-uploading."
+      "We could not convert that HEIC photo. Please choose a JPG/PNG photo or snap a selfie with the Use Camera button."
     );
   }
 }
 
 /**
- * Load a File into a PhotoState object. Handles HEIC conversion,
- * fallback browser native HEIC decoding, intrinsic dimensions, and orientation detection.
+ * Load a File into a PhotoState object.
+ * First tests native browser decoding (Safari, iOS, macOS), then falls back to WASM conversion.
  */
 export async function loadPhotoFromFile(file: File): Promise<PhotoLoadResult> {
-  let working = file;
-  let converted = false;
-
   const name = file.name.toLowerCase();
   const isHeic =
     file.type === "image/heic" ||
@@ -114,33 +109,33 @@ export async function loadPhotoFromFile(file: File): Promise<PhotoLoadResult> {
     name.endsWith(".heic") ||
     name.endsWith(".heif");
 
-  if (isHeic) {
-    try {
-      working = await convertHeicToJpeg(file);
-      converted = true;
-    } catch (conversionErr) {
-      console.warn("[HEIC] conversion error, testing native browser decoding fallback...", conversionErr);
-      // Fallback: Check if browser decodes HEIC natively (e.g. Safari / macOS / iOS Photos)
-      try {
-        const fallbackDataUrl = await fileToDataUrl(file);
-        const fallbackImg = await loadImage(fallbackDataUrl);
-        if (fallbackImg.naturalWidth > 0 && fallbackImg.naturalHeight > 0) {
-          const photo: PhotoState = {
-            src: fallbackDataUrl,
-            width: fallbackImg.naturalWidth,
-            height: fallbackImg.naturalHeight,
-            orientation: detectOrientation(fallbackImg.naturalWidth, fallbackImg.naturalHeight),
-            fileName: file.name,
-            mimeType: file.type || "image/heic",
-            loadedAt: Date.now(),
-          };
-          return { photo, converted: false };
-        }
-      } catch {
-        // Native fallback also failed
-      }
-      throw conversionErr;
+  // 1. Try native browser decoding first (works 100% natively on Safari, iOS, macOS & systems with codecs)
+  try {
+    const dataUrl = await fileToDataUrl(file);
+    const img = await loadImage(dataUrl);
+    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+      const photo: PhotoState = {
+        src: dataUrl,
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        orientation: detectOrientation(img.naturalWidth, img.naturalHeight),
+        fileName: file.name,
+        mimeType: file.type || "image/jpeg",
+        loadedAt: Date.now(),
+      };
+      return { photo, converted: false };
     }
+  } catch {
+    // Native decoding not supported on this browser/file; fallback to WASM converter
+  }
+
+  // 2. Fallback to WASM converter if HEIC and native decode failed
+  let working = file;
+  let converted = false;
+
+  if (isHeic) {
+    working = await convertHeicToJpeg(file);
+    converted = true;
   }
 
   const dataUrl = await fileToDataUrl(working);
