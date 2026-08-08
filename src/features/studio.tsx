@@ -199,7 +199,7 @@ export function Studio({ className }: StudioProps) {
   }, [clearAll, resetGenerator]);
 
   return (
-    <section id="studio" className={cn("relative py-12 sm:py-16", className)}>
+    <section id="studio" className={cn("relative pt-24 pb-12 sm:pt-28 sm:pb-16", className)}>
       <FloatingDecorations />
 
       <div className="relative mx-auto max-w-6xl px-5 sm:px-8">
