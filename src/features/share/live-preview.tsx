@@ -108,20 +108,20 @@ export function LivePreview({
 
   return (
     <div className={cn("relative flex flex-col gap-3", className)}>
-      {/* Team Pass Preview Switcher (Combined vs Teammate 1 / 2 / 3 Individual IDs) */}
-      {mode === "team-frame" && teamMembers.length > 0 && (
-        <div className="mx-auto flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-emerald/20 bg-card/80 p-1.5 shadow-sm">
+      {/* Team Frame Mode Tabs: Toggle between Team Pass and Individual Member Passes */}
+      {mode === "team-frame" && (
+        <div className="mb-4 flex items-center justify-center gap-2 rounded-xl border-2 border-[#1c3529] bg-[#FFFFFF] p-1.5 shadow-[3px_3px_0px_#1c3529]">
           <button
             type="button"
             onClick={() => setActiveTeamTab("team")}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all",
+              "inline-flex items-center gap-1.5 rounded-lg border-2 border-[#1c3529] px-3 py-1.5 font-mono text-xs font-bold transition-all shadow-[2px_2px_0px_#1c3529]",
               activeTeamTab === "team"
-                ? "bg-emerald text-ivory shadow-sm"
-                : "text-muted-foreground hover:bg-emerald/10 hover:text-emerald-deep"
+                ? "bg-[#1c3529] text-[#FCF9F2]"
+                : "bg-[#FCF9F2] text-[#1c3529] hover:bg-[#FFFFFF]"
             )}
           >
-            <Users className="h-3.5 w-3.5 text-gold" />
+            <Users className="h-3.5 w-3.5 text-[#d9a726]" />
             Team Pass
           </button>
 
@@ -131,10 +131,10 @@ export function LivePreview({
               type="button"
               onClick={() => setActiveTeamTab(idx)}
               className={cn(
-                "inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-bold transition-all",
+                "inline-flex items-center gap-1 rounded-lg border-2 border-[#1c3529] px-3 py-1.5 font-mono text-xs font-bold transition-all shadow-[2px_2px_0px_#1c3529]",
                 activeTeamTab === idx
-                  ? "bg-emerald text-ivory shadow-sm"
-                  : "text-muted-foreground hover:bg-emerald/10 hover:text-emerald-deep"
+                  ? "bg-[#1c3529] text-[#FCF9F2]"
+                  : "bg-[#FCF9F2] text-[#1c3529] hover:bg-[#FFFFFF]"
               )}
             >
               <User className="h-3 w-3" />

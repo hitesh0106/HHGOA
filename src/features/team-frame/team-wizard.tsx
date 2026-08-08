@@ -306,19 +306,19 @@ export function TeamWizard({
 
             {/* Photo Step: Upload vs Cropper vs Photo Ready */}
             {!currentMember.photo ? (
-              <div className="flex flex-col gap-3 rounded-3xl border border-emerald/20 bg-card/60 p-5 shadow-tropical">
-                <div className="flex items-center gap-2 text-sm font-bold text-emerald-deep">
-                  <Camera className="h-4 w-4 text-emerald" />
+              <div className="flex flex-col gap-3 rounded-2xl border-2 border-[#1c3529] bg-[#FFFFFF] p-5 shadow-[4px_4px_0px_#1c3529]">
+                <div className="flex items-center gap-2 text-sm font-bold text-[#1c3529]">
+                  <Camera className="h-4 w-4 text-[#d9a726]" />
                   Upload Teammate {activeStep} Photo
                 </div>
                 <UploadZone onPhotoLoaded={handlePhotoLoaded} />
               </div>
             ) : !currentMember.isConfirmed ? (
-              <div className="flex flex-col gap-4 rounded-3xl border border-emerald/20 bg-card/60 p-5 shadow-tropical">
+              <div className="flex flex-col gap-4 rounded-2xl border-2 border-[#1c3529] bg-[#FFFFFF] p-5 shadow-[4px_4px_0px_#1c3529]">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-bold text-emerald-deep">Crop & Position</p>
-                    <p className="text-xs text-muted-foreground">Drag to move · Pinch to zoom</p>
+                    <p className="text-sm font-bold text-[#1c3529]">Crop & Position</p>
+                    <p className="text-xs font-mono text-[#1c3529]/70">Drag to move · Pinch to zoom</p>
                   </div>
                   <UploadZone onPhotoLoaded={handlePhotoLoaded} compact />
                 </div>
@@ -331,24 +331,24 @@ export function TeamWizard({
                 <Button
                   type="button"
                   onClick={handleConfirmPhoto}
-                  className="h-11 w-full rounded-2xl bg-emerald font-semibold text-ivory shadow-tropical hover:bg-emerald-deep"
+                  className="h-11 w-full rounded-xl border-2 border-[#1c3529] bg-[#1c3529] font-mono text-sm font-bold uppercase text-[#FCF9F2] shadow-[3px_3px_0px_#d9a726] hover:bg-[#12241b]"
                 >
                   Confirm Teammate {activeStep} Photo →
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center justify-between rounded-2xl border border-emerald/25 bg-emerald/10 p-4 shadow-tropical">
+              <div className="flex items-center justify-between rounded-xl border-2 border-[#1c3529] bg-[#FCF9F2] p-4 shadow-[3px_3px_0px_#1c3529]">
                 <div className="flex items-center gap-3">
-                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-gold shadow-sm">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-[#1c3529] shadow-sm">
                     {currentMember.avatarUrl ? (
                       <img src={currentMember.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                     ) : (
-                      <div className="grid h-full w-full place-items-center bg-emerald font-bold text-ivory text-xs">✓</div>
+                      <div className="grid h-full w-full place-items-center bg-[#1c3529] font-bold text-[#FCF9F2] text-xs">✓</div>
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-emerald-deep">✓ Teammate {activeStep} Photo Ready</p>
-                    <p className="text-xs text-muted-foreground">Cropped & framed perfectly</p>
+                    <p className="text-sm font-bold text-[#1c3529]">✓ Teammate {activeStep} Photo Ready</p>
+                    <p className="text-xs font-mono text-[#1c3529]/70">Cropped & framed perfectly</p>
                   </div>
                 </div>
 
@@ -357,7 +357,7 @@ export function TeamWizard({
                   variant="outline"
                   size="sm"
                   onClick={handleReCrop}
-                  className="h-8 border-emerald/25 bg-card text-xs font-semibold text-emerald-deep hover:bg-emerald/10"
+                  className="h-8 rounded-lg border-2 border-[#1c3529] bg-[#FFFFFF] text-xs font-bold text-[#1c3529] shadow-[2px_2px_0px_#1c3529] hover:bg-[#FCF9F2]"
                 >
                   <ImageIcon className="mr-1.5 h-3.5 w-3.5" />
                   Change Photo
@@ -367,15 +367,16 @@ export function TeamWizard({
 
             {/* Member Details Form */}
             {currentMember.photo && currentMember.isConfirmed && (
-              <div className="rounded-3xl border border-emerald/20 bg-card/60 p-5 shadow-tropical flex flex-col gap-4">
-                <h4 className="font-serif text-base font-bold text-emerald-deep flex items-center gap-2">
-                  <User className="h-4 w-4 text-emerald" />
+              <div className="rounded-2xl border-2 border-[#1c3529] bg-[#FFFFFF] p-5 shadow-[4px_4px_0px_#1c3529] flex flex-col gap-4">
+                <h4 className="font-serif text-base font-bold text-[#1c3529] flex items-center gap-2">
+                  <User className="h-4 w-4 text-[#1c3529]" />
                   Teammate {activeStep} Identity
                 </h4>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-emerald-deep">
+                    <label className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
+                      <User className="h-3.5 w-3.5 text-[#1c3529]" />
                       Builder Name
                     </label>
                     <Input
@@ -383,13 +384,13 @@ export function TeamWizard({
                       onChange={(e) => handleMemberFieldChange("name", e.target.value)}
                       placeholder="e.g. Alex Mehra"
                       maxLength={36}
-                      className="h-11 rounded-xl border-emerald/20 bg-card text-emerald-deep placeholder:text-muted-foreground/60 focus-visible:ring-gold"
+                      className="h-11 rounded-xl border-2 border-[#1c3529] bg-[#FFFFFF] font-mono text-sm text-[#1c3529] placeholder:text-[#1c3529]/50 shadow-[2px_2px_0px_#1c3529] focus-visible:ring-0 focus-visible:border-[#d9a726]"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-emerald-deep flex items-center gap-1">
-                      <Briefcase className="h-3 w-3 text-emerald-soft" />
+                    <label className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
+                      <Briefcase className="h-3.5 w-3.5 text-[#1c3529]" />
                       Stack / Role
                     </label>
                     <Input
@@ -397,15 +398,15 @@ export function TeamWizard({
                       onChange={(e) => handleMemberFieldChange("role", e.target.value)}
                       placeholder="e.g. AI · PyTorch"
                       maxLength={40}
-                      className="h-11 rounded-xl border-emerald/20 bg-card text-emerald-deep placeholder:text-muted-foreground/60 focus-visible:ring-gold"
+                      className="h-11 rounded-xl border-2 border-[#1c3529] bg-[#FFFFFF] font-mono text-sm text-[#1c3529] placeholder:text-[#1c3529]/50 shadow-[2px_2px_0px_#1c3529] focus-visible:ring-0 focus-visible:border-[#d9a726]"
                     />
                   </div>
                 </div>
 
                 {/* Twitter / X Handle Input */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-emerald-deep flex items-center gap-1">
-                    <AtSign className="h-3 w-3 text-[#C85A32]" />
+                  <label className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
+                    <AtSign className="h-3.5 w-3.5 text-[#C85A32]" />
                     Twitter / X Handle
                   </label>
                   <Input
@@ -413,32 +414,32 @@ export function TeamWizard({
                     onChange={(e) => handleMemberFieldChange("twitter", e.target.value)}
                     placeholder="e.g. @alex_builds"
                     maxLength={30}
-                    className="h-11 rounded-xl border-emerald/20 bg-card text-emerald-deep placeholder:text-muted-foreground/60 focus-visible:ring-gold"
+                    className="h-11 rounded-xl border-2 border-[#1c3529] bg-[#FFFFFF] font-mono text-sm text-[#1c3529] placeholder:text-[#1c3529]/50 shadow-[2px_2px_0px_#1c3529] focus-visible:ring-0 focus-visible:border-[#d9a726]"
                   />
                 </div>
 
                 {/* AI Builder Title */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-emerald-deep">
+                    <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
                       Builder Title
                     </span>
                     <button
                       type="button"
                       onClick={handleRegenerateTitle}
-                      className="inline-flex items-center gap-1 rounded-full bg-emerald/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-deep hover:bg-emerald/20"
+                      className="inline-flex items-center gap-1.5 rounded-lg border-2 border-[#1c3529] bg-[#e04b77] px-3 py-1 font-mono text-xs font-bold text-white shadow-[2px_2px_0px_#1c3529] hover:bg-[#c0325e]"
                     >
-                      <Shuffle className="h-3 w-3" />
-                      Generate Another
+                      <Shuffle className="h-3.5 w-3.5" />
+                      Generate another
                     </button>
                   </div>
 
-                  <div className="relative flex items-center gap-2 rounded-xl border border-gold/40 bg-gradient-to-br from-gold/10 via-coral-soft/5 to-emerald-soft/5 px-3 py-2">
+                  <div className="relative flex items-center gap-2 rounded-xl border-2 border-[#1c3529] bg-[#d9a726] px-4 py-3 shadow-[3px_3px_0px_#1c3529]">
                     <input
                       value={currentMember.builderTitle || ""}
                       onChange={(e) => handleMemberFieldChange("builderTitle", e.target.value)}
                       placeholder="Title (e.g. Prompt Architect)"
-                      className="w-full bg-transparent font-serif text-sm font-bold text-emerald-deep outline-none"
+                      className="w-full bg-transparent font-serif text-lg font-bold text-[#1c3529] outline-none"
                       maxLength={40}
                     />
                   </div>
@@ -449,7 +450,7 @@ export function TeamWizard({
                   <Button
                     type="button"
                     onClick={handleNextStep}
-                    className="h-12 w-full rounded-2xl bg-gradient-to-br from-emerald to-emerald-deep text-sm font-bold text-ivory shadow-tropical hover:shadow-tropical-lg"
+                    className="h-12 w-full rounded-xl border-2 border-[#1c3529] bg-[#1c3529] font-mono text-sm font-bold uppercase text-[#FCF9F2] shadow-[3px_3px_0px_#d9a726] hover:bg-[#12241b]"
                   >
                     {activeStep < totalMembers ? (
                       <>
@@ -501,14 +502,15 @@ export function TeamWizard({
             </div>
 
             {/* Team Details Inputs */}
-            <div className="rounded-3xl border border-emerald/20 bg-card/60 p-5 shadow-tropical flex flex-col gap-4">
-              <h4 className="font-serif text-base font-bold text-emerald-deep flex items-center gap-2">
-                <Users className="h-4 w-4 text-emerald" />
+            <div className="rounded-2xl border-2 border-[#1c3529] bg-[#FFFFFF] p-5 shadow-[4px_4px_0px_#1c3529] flex flex-col gap-4">
+              <h4 className="font-serif text-base font-bold text-[#1c3529] flex items-center gap-2">
+                <Users className="h-4 w-4 text-[#1c3529]" />
                 Team Details
               </h4>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider text-emerald-deep">
+                <label className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
+                  <Users className="h-3.5 w-3.5 text-[#1c3529]" />
                   Team Name
                 </label>
                 <Input
@@ -522,14 +524,14 @@ export function TeamWizard({
                   }
                   placeholder="e.g. Neural Ninjas"
                   maxLength={40}
-                  className="h-11 rounded-xl border-emerald/20 bg-card text-emerald-deep placeholder:text-muted-foreground/60 focus-visible:ring-gold"
+                  className="h-11 rounded-xl border-2 border-[#1c3529] bg-[#FFFFFF] font-mono text-sm text-[#1c3529] placeholder:text-[#1c3529]/50 shadow-[2px_2px_0px_#1c3529] focus-visible:ring-0 focus-visible:border-[#d9a726]"
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-emerald-deep flex items-center gap-1">
-                    <School className="h-3 w-3 text-emerald-soft" />
+                  <label className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
+                    <School className="h-3.5 w-3.5 text-[#1c3529]" />
                     College / University (Optional)
                   </label>
                   <Input
@@ -543,12 +545,12 @@ export function TeamWizard({
                     }
                     placeholder="e.g. BITS Pilani"
                     maxLength={48}
-                    className="h-11 rounded-xl border-emerald/20 bg-card text-emerald-deep placeholder:text-muted-foreground/60 focus-visible:ring-gold"
+                    className="h-11 rounded-xl border-2 border-[#1c3529] bg-[#FFFFFF] font-mono text-sm text-[#1c3529] placeholder:text-[#1c3529]/50 shadow-[2px_2px_0px_#1c3529] focus-visible:ring-0 focus-visible:border-[#d9a726]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-emerald-deep">
+                  <label className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
                     Team Tagline (Optional)
                   </label>
                   <Input
@@ -562,15 +564,15 @@ export function TeamWizard({
                     }
                     placeholder="e.g. Shipping AI @ HH Goa"
                     maxLength={48}
-                    className="h-11 rounded-xl border-emerald/20 bg-card text-emerald-deep placeholder:text-muted-foreground/60 focus-visible:ring-gold"
+                    className="h-11 rounded-xl border-2 border-[#1c3529] bg-[#FFFFFF] font-mono text-sm text-[#1c3529] placeholder:text-[#1c3529]/50 shadow-[2px_2px_0px_#1c3529] focus-visible:ring-0 focus-visible:border-[#d9a726]"
                   />
                 </div>
               </div>
             </div>
 
             {/* Summary of Teammates */}
-            <div className="rounded-3xl border border-emerald/20 bg-card/60 p-5 shadow-tropical flex flex-col gap-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-deep">
+            <div className="rounded-2xl border-2 border-[#1c3529] bg-[#FFFFFF] p-5 shadow-[4px_4px_0px_#1c3529] flex flex-col gap-3">
+              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
                 Completed Teammates ({totalMembers} of {totalMembers})
               </h4>
 
@@ -580,22 +582,22 @@ export function TeamWizard({
                     key={m.id || idx}
                     type="button"
                     onClick={() => setActiveStep(idx + 1)}
-                    className="flex items-center gap-2.5 rounded-2xl border border-emerald/15 bg-card/80 p-3 text-left transition-all hover:border-gold hover:bg-emerald/5"
+                    className="flex items-center gap-2.5 rounded-xl border-2 border-[#1c3529] bg-[#FCF9F2] p-3 text-left shadow-[2px_2px_0px_#1c3529] transition-all hover:bg-[#EFE9DE]"
                   >
-                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-gold">
+                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-[#1c3529]">
                       {m.avatarUrl ? (
                         <img src={m.avatarUrl} alt={m.name} className="h-full w-full object-cover" />
                       ) : (
-                        <div className="grid h-full w-full place-items-center bg-emerald text-[10px] font-bold text-ivory">
+                        <div className="grid h-full w-full place-items-center bg-[#1c3529] text-[10px] font-bold text-[#FCF9F2]">
                           M{idx + 1}
                         </div>
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-emerald-deep truncate">
+                      <p className="text-xs font-bold text-[#1c3529] truncate">
                         {m.name || `Member ${idx + 1}`}
                       </p>
-                      <p className="text-[10px] text-muted-foreground truncate">
+                      <p className="text-[10px] font-mono text-[#1c3529]/70 truncate">
                         {m.twitter ? m.twitter : m.role || "Builder"}
                       </p>
                     </div>
@@ -610,9 +612,9 @@ export function TeamWizard({
                 type="button"
                 onClick={onGenerate}
                 disabled={isGenerating}
-                className="group relative h-14 w-full overflow-hidden rounded-2xl bg-gradient-to-br from-emerald to-emerald-deep px-8 text-base font-bold text-ivory shadow-tropical-lg transition-all hover:shadow-tropical-lg"
+                className="group relative h-14 w-full overflow-hidden rounded-xl border-3 border-[#1c3529] bg-[#d9a726] px-8 font-mono text-base font-black uppercase text-[#1c3529] shadow-[5px_5px_0px_#1c3529] transition-all hover:bg-[#b58617]"
               >
-                <Sparkles className="mr-2 h-5 w-5 transition-transform group-hover:rotate-12" />
+                <Sparkles className="mr-2 h-5 w-5 transition-transform group-hover:rotate-12 text-[#1c3529]" />
                 Generate Team PNG 🎉
               </Button>
             </div>

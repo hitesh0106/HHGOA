@@ -208,7 +208,7 @@ export function Studio({ className }: StudioProps) {
           <motion.h2
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-serif text-3xl text-emerald-deep sm:text-4xl"
+            className="font-serif text-3xl font-black text-[#1c3529] sm:text-4xl md:text-5xl"
           >
             {hasGenerated
               ? mode === "team-frame"
@@ -220,7 +220,7 @@ export function Studio({ className }: StudioProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 }}
-            className="mt-2 text-base text-muted-foreground"
+            className="mt-2 font-mono text-sm sm:text-base font-bold text-[#1c3529]/80"
           >
             {hasGenerated
               ? "Download your PNG artwork, share to X, or copy your public showcase link."
@@ -552,16 +552,16 @@ function StepHeader({
 }) {
   return (
     <div>
-      <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald">
-        <span className="grid h-5 w-5 place-items-center rounded-full bg-emerald/10 text-emerald">
+      <div className="inline-flex items-center gap-1.5 font-mono text-xs font-black uppercase tracking-wider text-[#1c3529]">
+        <span className="grid h-5 w-5 place-items-center rounded-md border border-[#1c3529] bg-[#d9a726] text-[#1c3529]">
           {icon}
         </span>
         {label}
       </div>
-      <h3 className="mt-2 font-serif text-xl text-emerald-deep sm:text-2xl">
+      <h3 className="mt-2 font-serif text-xl sm:text-2xl font-black text-[#1c3529]">
         {title}
       </h3>
-      <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+      <p className="mt-1 font-mono text-xs sm:text-sm font-bold text-[#1c3529]/80">{subtitle}</p>
     </div>
   );
 }

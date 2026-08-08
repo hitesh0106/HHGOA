@@ -90,10 +90,10 @@ export function ModeSelector({ value, onChange, className }: ModeSelectorProps) 
             </div>
 
             <div className="mt-3 flex-1">
-              <h3 className="font-serif text-lg font-black text-[#1c3529]">
+              <h3 className="font-serif text-xl font-black text-[#1c3529]">
                 {mode.label}
               </h3>
-              <p className="mt-1 font-mono text-xs font-bold leading-relaxed text-[#1c3529]/80 line-clamp-2">
+              <p className="mt-1 font-mono text-xs font-bold leading-relaxed text-[#1c3529]/85 line-clamp-2">
                 {mode.description}
               </p>
             </div>
