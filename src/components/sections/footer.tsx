@@ -24,7 +24,7 @@ interface FooterProps {
 export function Footer({ className }: FooterProps) {
   return (
     <footer
-      className={`relative mt-auto border-t border-white/[0.06] bg-[#0F4A3A] ${className ?? ""}`}
+      className={`w-full shrink-0 border-t-2 border-[#1c3529] bg-[#0F4A3A] ${className ?? ""}`}
       style={{ minHeight: 72 }}
     >
       <div className="mx-auto flex h-[72px] max-w-[1400px] flex-col items-center justify-center gap-3 px-8 py-4 sm:flex-row sm:justify-between sm:px-12 md:h-[80px]">

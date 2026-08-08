@@ -53,7 +53,9 @@ export default function Home() {
   return (
     <div className="relative flex min-h-screen flex-col bg-background">
       <SiteNav />
-      <main className="flex-1">
+      {/* Header Spacer to guarantee content starts cleanly below sticky navbar */}
+      <div className="h-16 sm:h-20 shrink-0" aria-hidden="true" />
+      <main className="flex-1 flex flex-col justify-between">
         <Studio />
       </main>
       <Footer />
