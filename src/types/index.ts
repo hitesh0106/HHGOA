@@ -2,8 +2,8 @@
  * Type definitions for the HH Goa 2026 Builder Identity Generator.
  */
 
-/** The two generation modes the user can choose between. */
-export type GeneratorMode = "profile-frame" | "builder-id";
+/** The generation modes the user can choose between. */
+export type GeneratorMode = "profile-frame" | "builder-id" | "team-frame";
 
 /** Supported photo formats. */
 export type AcceptedPhotoType = "image/jpeg" | "image/png" | "image/webp" | "image/heic" | "image/heif";
@@ -29,11 +29,35 @@ export interface PhotoState {
   loadedAt: number;
 }
 
-/** Form values for the Builder ID card. */
+/** Form values for a single Builder ID card. */
 export interface BuilderFormValues {
   name: string;
   role: string;
   builderTitle: string;
+  twitter?: string;
+  builderId?: string;
+}
+
+/** Team Member data structure. */
+export interface TeamMember {
+  id: string;
+  builderId?: string;
+  name: string;
+  role: string;
+  builderTitle: string;
+  twitter?: string;
+  photo?: PhotoState | null;
+  avatarUrl?: string | null;
+  cropArea?: CroppedAreaPixels | null;
+  isConfirmed?: boolean;
+}
+
+/** Form values for Team Frame mode. */
+export interface TeamFormValues {
+  teamName: string;
+  teamTagline?: string;
+  college?: string;
+  members: TeamMember[];
 }
 
 /** Persisted form draft in localStorage. */
@@ -41,9 +65,21 @@ export interface PersistedDraft {
   name: string;
   role: string;
   builderTitle: string;
+  builderId?: string;
   mode: GeneratorMode;
   /** Small data-URL thumbnail of the last uploaded photo. */
   photoThumb?: string;
+  /** Team frame draft data */
+  teamName?: string;
+  teamTagline?: string;
+  college?: string;
+  teamMembers?: {
+    id: string;
+    name: string;
+    role: string;
+    builderTitle: string;
+    photoThumb?: string;
+  }[];
   updatedAt: number;
 }
 
