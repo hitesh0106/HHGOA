@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { CircleUser, IdCard, ArrowRight } from "lucide-react";
+import { User, Users, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GeneratorMode } from "@/types";
 
@@ -15,39 +15,32 @@ interface ModeSelectorProps {
 interface ModeOption {
   id: GeneratorMode;
   label: string;
+  badge?: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  accent: string;
-  ring: string;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number | string }>;
 }
 
 const MODES: ModeOption[] = [
   {
-    id: "profile-frame",
-    label: "Profile Frame",
-    description: "Circular avatar with palm decorations and premium border",
-    icon: CircleUser,
-    accent: "from-gold/20 via-coral-soft/20 to-emerald-soft/20",
-    ring: "ring-gold/60",
+    id: "builder-id",
+    label: "Solo Pass",
+    badge: "1 Hacker",
+    description: "Official 1-person expedition pass with your photo, stack & AI title",
+    icon: User,
   },
   {
-    id: "builder-id",
-    label: "Builder ID",
-    description: "Modern identity card with name, role and Builder Title",
-    icon: IdCard,
-    accent: "from-emerald-soft/20 via-gold/15 to-coral-soft/15",
-    ring: "ring-emerald/60",
+    id: "team-frame",
+    label: "Team Pass",
+    badge: "2–3 Hackers",
+    description: "Official team pass combining 2 or 3 hackers into one expedition frame",
+    icon: Users,
   },
 ];
 
-/**
- * Two-card mode picker. Big tap targets, clear iconography, animated
- * selection ring. Keyboard accessible (Tab + Enter/Space).
- */
 export function ModeSelector({ value, onChange, className }: ModeSelectorProps) {
   return (
     <div
-      className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", className)}
+      className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2", className)}
       role="radiogroup"
       aria-label="Choose generation mode"
     >
@@ -61,68 +54,53 @@ export function ModeSelector({ value, onChange, className }: ModeSelectorProps) 
             role="radio"
             aria-checked={selected}
             onClick={() => onChange(mode.id)}
-            whileHover={{ y: -3 }}
+            whileHover={{ scale: 1.01, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 360, damping: 22 }}
             className={cn(
-              "group relative flex flex-col items-start gap-4 overflow-hidden rounded-3xl border p-5 sm:p-6 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-4",
-              "bg-gradient-to-br",
-              mode.accent,
+              "group relative flex flex-col justify-between rounded-xl border-2 border-[#1c3529] p-4 text-left shadow-[4px_4px_0px_#1c3529] transition-all duration-200 outline-none",
               selected
-                ? `border-transparent ring-2 ring-offset-2 ring-offset-background ${mode.ring} shadow-tropical-lg`
-                : "border-emerald/15 bg-card hover:border-emerald/30 hover:shadow-tropical"
+                ? "bg-[#d9a726] text-[#1c3529]"
+                : "bg-[#FCF9F2] text-[#1c3529] hover:bg-[#FFFFFF]"
             )}
           >
-            {/* Decorative corner */}
-            <div
-              aria-hidden
-              className={cn(
-                "pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl transition-opacity",
-                selected
-                  ? "bg-gold/40 opacity-100"
-                  : "bg-emerald-soft/30 opacity-0 group-hover:opacity-100"
-              )}
-            />
-
-            <div className="flex w-full items-start justify-between gap-3">
+            <div className="flex w-full items-start justify-between gap-2">
               <div
                 className={cn(
-                  "grid h-12 w-12 shrink-0 place-items-center rounded-2xl transition-all duration-300",
+                  "grid h-10 w-10 shrink-0 place-items-center rounded-lg border-2 border-[#1c3529] transition-all duration-200",
                   selected
-                    ? "bg-gradient-to-br from-emerald to-emerald-deep text-ivory shadow-tropical"
-                    : "bg-emerald/10 text-emerald-deep group-hover:bg-emerald/20"
+                    ? "bg-[#1c3529] text-[#f3f6f1]"
+                    : "bg-[#FCF9F2] text-[#1c3529]"
                 )}
               >
-                <Icon className="h-6 w-6" strokeWidth={2.2} />
+                <Icon className="h-5 w-5" strokeWidth={2.2} />
               </div>
 
-              {selected && (
-                <motion.span
-                  layoutId="mode-check"
-                  className="inline-flex items-center gap-1 rounded-full bg-gold px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-deep"
-                >
-                  Selected
-                </motion.span>
-              )}
+              <div className="flex items-center gap-1.5">
+                {mode.badge && (
+                  <span className="rounded-md border border-[#1c3529] bg-[#1c3529]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#1c3529]">
+                    {mode.badge}
+                  </span>
+                )}
+                {selected && (
+                  <span className="inline-flex items-center gap-1 rounded-md border border-[#1c3529] bg-[#e04b77] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-white">
+                    Active
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div className="flex-1">
-              <h3 className="font-serif text-lg sm:text-xl text-emerald-deep">
+            <div className="mt-3 flex-1">
+              <h3 className="font-serif text-lg font-black text-[#1c3529]">
                 {mode.label}
               </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 font-mono text-xs font-bold leading-relaxed text-[#1c3529]/80 line-clamp-2">
                 {mode.description}
               </p>
             </div>
 
-            <div
-              className={cn(
-                "inline-flex items-center gap-1 text-xs font-semibold transition-colors",
-                selected ? "text-emerald" : "text-muted-foreground group-hover:text-emerald-deep"
-              )}
-            >
-              {selected ? "Active" : "Select"}
-              <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+            <div className="mt-3 flex items-center gap-1 font-mono text-xs font-bold text-[#1c3529]">
+              <span>{selected ? "SELECTED" : "SELECT MODE"}</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </div>
           </motion.button>
         );

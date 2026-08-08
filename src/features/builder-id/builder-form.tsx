@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { RefreshCw, Shuffle, User, Briefcase } from "lucide-react";
+import { RefreshCw, Shuffle, User, Briefcase, AtSign } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -15,7 +15,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useBuilderTitle } from "@/hooks/use-builder-title";
 import { cn } from "@/lib/utils";
 
@@ -28,28 +27,29 @@ const builderSchema = z.object({
     .string()
     .min(1, "Tell us what you build.")
     .max(48, "Let's keep it under 48 characters."),
+  twitter: z
+    .string()
+    .max(30, "Twitter handle should be under 30 characters.")
+    .optional(),
 });
 
 interface BuilderFormProps {
   initialName?: string;
   initialRole?: string;
   initialTitle?: string;
-  onChange: (values: { name: string; role: string; builderTitle: string }) => void;
+  initialTwitter?: string;
+  onChange: (values: { name: string; role: string; builderTitle: string; twitter?: string }) => void;
   className?: string;
 }
 
-/**
- * Builder ID form. Controlled by React Hook Form + Zod. Every keystroke is
- * forwarded to the parent via onChange so the live preview updates instantly.
- */
 export function BuilderForm({
   initialName = "",
   initialRole = "",
   initialTitle,
+  initialTwitter = "",
   onChange,
   className,
 }: BuilderFormProps) {
-  // Track the current role so the title generator can use it.
   const [currentRole, setCurrentRole] = React.useState(initialRole);
   const { title, setTitle, regenerate } = useBuilderTitle(initialTitle, currentRole);
   const [spinKey, setSpinKey] = React.useState(0);
@@ -61,11 +61,10 @@ export function BuilderForm({
     defaultValues: {
       name: initialName,
       role: initialRole,
+      twitter: initialTwitter,
     },
   });
 
-  // Watch the role field — when it changes, auto-regenerate the title with the
-  // new stack context.
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/incompatible-library
     const sub = form.watch((values) => {
@@ -78,31 +77,28 @@ export function BuilderForm({
     return () => sub.unsubscribe();
   }, [form]);
 
-  // Keep a ref to the latest title + onChange so the watch subscription
-  // doesn't need to re-subscribe on every title change (avoids cascading
-  // renders that would otherwise reset the parent's hasGenerated state).
   const titleRef = React.useRef(title);
   titleRef.current = title;
   const onChangeRef = React.useRef(onChange);
   onChangeRef.current = onChange;
 
-  // Forward changes upward. We subscribe with form.watch once.
   React.useEffect(() => {
     const sub = form.watch((values) => {
       onChangeRef.current({
         name: (values.name as string) ?? "",
         role: (values.role as string) ?? "",
+        twitter: (values.twitter as string) ?? "",
         builderTitle: titleRef.current,
       });
     });
     return () => sub.unsubscribe();
   }, [form]);
 
-  // Whenever the title changes (including refresh), bubble it up.
   React.useEffect(() => {
     onChangeRef.current({
       name: form.getValues("name") ?? "",
       role: form.getValues("role") ?? "",
+      twitter: form.getValues("twitter") ?? "",
       builderTitle: title,
     });
   }, [title, form]);
@@ -128,17 +124,17 @@ export function BuilderForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2 text-sm font-medium text-emerald-deep">
-                <User className="h-3.5 w-3.5 text-emerald-soft" />
-                Builder name
+              <FormLabel className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
+                <User className="h-3.5 w-3.5 text-[#1c3529]" />
+                Builder Name
               </FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  placeholder="e.g. Aria Mehra"
+                  placeholder="e.g. Alex Mehra"
                   autoComplete="name"
                   maxLength={40}
-                  className="h-11 rounded-xl border-emerald/20 bg-card text-emerald-deep placeholder:text-muted-foreground/60 focus-visible:ring-gold"
+                  className="h-11 rounded-xl border-2 border-[#1c3529] bg-[#FFFFFF] font-mono text-sm text-[#1c3529] placeholder:text-[#1c3529]/50 shadow-[2px_2px_0px_#1c3529] focus-visible:ring-0 focus-visible:border-[#d9a726]"
                 />
               </FormControl>
               <FormMessage />
@@ -151,16 +147,38 @@ export function BuilderForm({
           name="role"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2 text-sm font-medium text-emerald-deep">
-                <Briefcase className="h-3.5 w-3.5 text-emerald-soft" />
+              <FormLabel className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
+                <Briefcase className="h-3.5 w-3.5 text-[#1c3529]" />
                 Stack / Role
               </FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  placeholder="e.g. AI · LLM Tooling"
+                  placeholder="e.g. AI · PyTorch"
                   maxLength={48}
-                  className="h-11 rounded-xl border-emerald/20 bg-card text-emerald-deep placeholder:text-muted-foreground/60 focus-visible:ring-gold"
+                  className="h-11 rounded-xl border-2 border-[#1c3529] bg-[#FFFFFF] font-mono text-sm text-[#1c3529] placeholder:text-[#1c3529]/50 shadow-[2px_2px_0px_#1c3529] focus-visible:ring-0 focus-visible:border-[#d9a726]"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="twitter"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
+                <AtSign className="h-3.5 w-3.5 text-[#C85A32]" />
+                Twitter / X Handle
+              </FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  placeholder="e.g. @alex_builds"
+                  maxLength={30}
+                  className="h-11 rounded-xl border-2 border-[#1c3529] bg-[#FFFFFF] font-mono text-sm text-[#1c3529] placeholder:text-[#1c3529]/50 shadow-[2px_2px_0px_#1c3529] focus-visible:ring-0 focus-visible:border-[#d9a726]"
                 />
               </FormControl>
               <FormMessage />
@@ -170,13 +188,13 @@ export function BuilderForm({
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-emerald-deep">
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#1c3529]">
               Builder Title
             </span>
             <button
               type="button"
               onClick={handleRegenerate}
-              className="inline-flex items-center gap-1.5 rounded-full bg-emerald/10 px-3 py-1 text-xs font-semibold text-emerald-deep transition-all hover:bg-emerald/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-1.5 rounded-lg border-2 border-[#1c3529] bg-[#e04b77] px-3 py-1 font-mono text-xs font-bold text-white shadow-[2px_2px_0px_#1c3529] hover:bg-[#c0325e]"
               aria-label="Generate another Builder Title"
             >
               <motion.span
@@ -199,29 +217,21 @@ export function BuilderForm({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.18 }}
-              className="relative flex items-center gap-2 rounded-xl border border-gold/40 bg-gradient-to-br from-gold/12 via-coral-soft/8 to-emerald-soft/8 px-4 py-3 shadow-tropical"
+              className="relative flex items-center gap-2 rounded-xl border-2 border-[#1c3529] bg-[#d9a726] px-4 py-3 shadow-[3px_3px_0px_#1c3529]"
             >
-              <RefreshCw className="h-3.5 w-3.5 shrink-0 text-gold-deep" />
+              <RefreshCw className="h-4 w-4 shrink-0 text-[#1c3529]" />
               <input
                 value={title}
                 onChange={(e) => handleSetTitle(e.target.value)}
-                className="w-full bg-transparent font-serif text-lg text-emerald-deep outline-none"
+                className="w-full bg-transparent font-serif text-lg font-bold text-[#1c3529] outline-none"
                 aria-label="Builder Title (editable)"
                 maxLength={48}
               />
             </motion.div>
           </AnimatePresence>
 
-          <p className="text-xs text-muted-foreground">
-            Tap{" "}
-            <button
-              type="button"
-              onClick={handleRegenerate}
-              className="font-medium text-emerald underline-offset-2 hover:underline"
-            >
-              Generate another
-            </button>{" "}
-            to roll from 100+ original titles · Or type your own
+          <p className="font-mono text-[11px] text-[#1c3529]/80">
+            Tap Generate another to roll from 100+ titles · Or type your own
           </p>
         </div>
       </form>
