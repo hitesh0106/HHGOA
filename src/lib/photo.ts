@@ -1,5 +1,5 @@
 /**
- * Photo handling utilities — validation, HEIC conversion, cropping, and
+ * Photo handling utilities — validation, robust HEIC/HEIF conversion, cropping, and
  * pixel-perfect crop extraction. All browser-side, no network calls.
  */
 
@@ -7,21 +7,28 @@ import { APP_CONFIG } from "@/constants";
 import { detectOrientation, fileToDataUrl, loadImage } from "@/lib/utils";
 import type { PhotoOrientation, PhotoState } from "@/types";
 
-// Dynamically import heic2any — it references `window` at module load which
-// breaks SSR. We only need it inside the browser.
 type Heic2AnyFn = (options: {
   blob: Blob;
   toType: string;
   quality: number;
 }) => Promise<Blob | Blob[]>;
+
 let _heic2anyCache: Heic2AnyFn | null = null;
+
 async function getHeic2Any(): Promise<Heic2AnyFn> {
   if (_heic2anyCache) return _heic2anyCache;
-  const mod = (await import("heic2any")) as unknown as {
-    default: Heic2AnyFn;
-  };
-  _heic2anyCache = mod.default;
-  return _heic2anyCache;
+  try {
+    const mod = (await import("heic2any")) as unknown as Record<string, unknown>;
+    const fn = (typeof mod === "function" ? mod : mod?.default) as unknown as Heic2AnyFn;
+    if (typeof fn !== "function") {
+      throw new Error("heic2any module function not found");
+    }
+    _heic2anyCache = fn;
+    return _heic2anyCache;
+  } catch (err) {
+    console.error("[getHeic2Any] import failed", err);
+    throw err;
+  }
 }
 
 export interface PhotoLoadResult {
@@ -71,10 +78,15 @@ export function validatePhotoFile(file: File): string | null {
 export async function convertHeicToJpeg(file: File): Promise<File> {
   try {
     const heic2any = await getHeic2Any();
+    // Ensure blob has explicit type image/heic for heic2any
+    const blobToConvert = file.type && file.type.includes("heic")
+      ? file
+      : new Blob([file], { type: "image/heic" });
+
     const result = await heic2any({
-      blob: file,
+      blob: blobToConvert,
       toType: "image/jpeg",
-      quality: 0.92,
+      quality: 0.9,
     });
     const blob = Array.isArray(result) ? result[0] : result;
     const newName = file.name.replace(/\.(heic|heif)$/i, ".jpg");
@@ -89,7 +101,7 @@ export async function convertHeicToJpeg(file: File): Promise<File> {
 
 /**
  * Load a File into a PhotoState object. Handles HEIC conversion,
- * intrinsic dimensions, and orientation detection.
+ * fallback browser native HEIC decoding, intrinsic dimensions, and orientation detection.
  */
 export async function loadPhotoFromFile(file: File): Promise<PhotoLoadResult> {
   let working = file;
@@ -103,8 +115,32 @@ export async function loadPhotoFromFile(file: File): Promise<PhotoLoadResult> {
     name.endsWith(".heif");
 
   if (isHeic) {
-    working = await convertHeicToJpeg(file);
-    converted = true;
+    try {
+      working = await convertHeicToJpeg(file);
+      converted = true;
+    } catch (conversionErr) {
+      console.warn("[HEIC] conversion error, testing native browser decoding fallback...", conversionErr);
+      // Fallback: Check if browser decodes HEIC natively (e.g. Safari / macOS / iOS Photos)
+      try {
+        const fallbackDataUrl = await fileToDataUrl(file);
+        const fallbackImg = await loadImage(fallbackDataUrl);
+        if (fallbackImg.naturalWidth > 0 && fallbackImg.naturalHeight > 0) {
+          const photo: PhotoState = {
+            src: fallbackDataUrl,
+            width: fallbackImg.naturalWidth,
+            height: fallbackImg.naturalHeight,
+            orientation: detectOrientation(fallbackImg.naturalWidth, fallbackImg.naturalHeight),
+            fileName: file.name,
+            mimeType: file.type || "image/heic",
+            loadedAt: Date.now(),
+          };
+          return { photo, converted: false };
+        }
+      } catch {
+        // Native fallback also failed
+      }
+      throw conversionErr;
+    }
   }
 
   const dataUrl = await fileToDataUrl(working);
